@@ -10,25 +10,46 @@ import {
 } from '../../shared/models/auth.models';
 import { TokenStorageService } from './token-storage.service';
 
-@Injectable({ providedIn: 'root' })
+export type ResetPasswordRequest = {
+  email: string;
+  token: string;
+  newPassword: string;
+};
+
+@Injectable({
+  providedIn: 'root',
+})
 export class AuthService {
+
   private readonly baseUrl = environment.apiBaseUrl;
+  private readonly authBase = `${this.baseUrl}/api/Auth`;
 
   constructor(
     private readonly http: HttpClient,
     private readonly tokenStorage: TokenStorageService
   ) {}
 
+  // =============================
+  // LOGIN
+  // =============================
+
   login(request: LoginRequest): Observable<LoginResponse> {
     return this.http
-      .post<LoginResponse>(`${this.baseUrl}/auth/login`, request)
+      .post<LoginResponse>(`${this.authBase}/login`, request)
       .pipe(
-        tap(res => this.tokenStorage.setTokens(res.accessToken, res.refreshToken))
+        tap(res =>
+          this.tokenStorage.setTokens(res.accessToken, res.refreshToken)
+        )
       );
   }
 
+  // =============================
+  // REFRESH TOKEN
+  // =============================
+
   refresh(): Observable<RefreshResponse> {
     const refreshToken = this.tokenStorage.getRefreshToken();
+
     if (!refreshToken) {
       throw new Error('No refresh token available.');
     }
@@ -36,23 +57,49 @@ export class AuthService {
     const payload: RefreshRequest = { refreshToken };
 
     return this.http
-      .post<RefreshResponse>(`${this.baseUrl}/auth/refresh`, payload)
+      .post<RefreshResponse>(`${this.authBase}/refresh`, payload)
       .pipe(
-        tap(res => this.tokenStorage.setTokens(res.accessToken, res.refreshToken))
+        tap(res =>
+          this.tokenStorage.setTokens(res.accessToken, res.refreshToken)
+        )
       );
   }
+
+  // =============================
+  // FORGOT PASSWORD
+  // =============================
+
+  forgotPassword(email: string): Observable<void> {
+    return this.http.post<void>(
+      `${this.authBase}/forgot-password`,
+      { email }
+    );
+  }
+
+  // =============================
+  // RESET PASSWORD
+  // =============================
+
+  resetPassword(payload: ResetPasswordRequest): Observable<void> {
+    return this.http.post<void>(
+      `${this.authBase}/reset-password`,
+      payload
+    );
+  }
+
+  // =============================
+  // LOGOUT
+  // =============================
 
   logout(): void {
     this.tokenStorage.clear();
   }
 
+  // =============================
+  // AUTH CHECK
+  // =============================
+
   isAuthenticated(): boolean {
     return !!this.tokenStorage.getAccessToken();
   }
-  forgotPassword(email: string) {
-  return this.http.post<void>(
-    `${this.baseUrl}/api/auth/forgot-password`,
-    { email }
-  );
-}
 }

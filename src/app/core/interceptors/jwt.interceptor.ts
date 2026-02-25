@@ -6,13 +6,24 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
   const tokenStorage = inject(TokenStorageService);
   const accessToken = tokenStorage.getAccessToken();
 
-  // Avoid adding token to auth endpoints (optional safety)
-  if (!accessToken || req.url.includes('/auth/login') || req.url.includes('/auth/refresh')) {
+  // Normalize URL for safety
+  const url = req.url.toLowerCase();
+
+  // Do NOT attach token to auth endpoints
+  if (
+    !accessToken ||
+    url.includes('/auth/login') ||
+    url.includes('/auth/refresh') ||
+    url.includes('/auth/forgot-password') ||
+    url.includes('/auth/reset-password')
+  ) {
     return next(req);
   }
 
   const authReq = req.clone({
-    setHeaders: { Authorization: `Bearer ${accessToken}` }
+    setHeaders: {
+      Authorization: `Bearer ${accessToken}`
+    }
   });
 
   return next(authReq);
