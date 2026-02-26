@@ -1,11 +1,16 @@
-import { Component } from '@angular/core';
+import { Component, EventEmitter, Output } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
-
+import { LucideAngularModule, Settings, LogOut } from 'lucide-angular';
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [RouterLink, RouterLinkActive],
+  imports: [RouterLink, RouterLinkActive, LucideAngularModule],
   templateUrl: './sidebar.html',
-  styleUrl: './sidebar.css',
 })
-export class Sidebar {}
+export class Sidebar {
+  @Output() logoutRequested = new EventEmitter<void>();
+
+  requestLogout(): void {
+    this.logoutRequested.emit();
+  }
+}

@@ -4,8 +4,8 @@ import { Router } from '@angular/router';
 import { importProvidersFrom } from '@angular/core';
 
 import { Login } from './login';
-import { AuthService } from '../../../core/auth/auth.service';
-import { TokenStorageService } from '../../../core/auth/token-storage.service';
+import { AuthService } from '../../../Core/Auth/auth.service';
+import { TokenStorageService } from '../../../Core/Auth/token-storage.service';
 
 import {
   LucideAngularModule,
@@ -41,7 +41,7 @@ describe('Login', () => {
         { provide: Router, useValue: routerSpy },
         { provide: TokenStorageService, useValue: tokenStorageSpy },
 
-        // 🔥 REGISTRAMOS LUCIDE SOLO PARA TEST
+
         importProvidersFrom(
           LucideAngularModule.pick({
             Mail,
