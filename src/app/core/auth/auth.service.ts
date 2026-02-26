@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { Observable, tap, throwError } from 'rxjs';
+import { Router } from '@angular/router';
+
 import { environment } from '../../../environments/environment';
 import {
   LoginRequest,
@@ -26,19 +28,24 @@ export class AuthService {
 
   constructor(
     private readonly http: HttpClient,
-    private readonly tokenStorage: TokenStorageService
+    private readonly tokenStorage: TokenStorageService,
+    private readonly router: Router
   ) {}
 
   // =============================
   // LOGIN
   // =============================
 
-  login(request: LoginRequest): Observable<LoginResponse> {
+  login(request: LoginRequest, rememberMe: boolean): Observable<LoginResponse> {
     return this.http
       .post<LoginResponse>(`${this.authBase}/login`, request)
       .pipe(
         tap(res =>
-          this.tokenStorage.setTokens(res.accessToken, res.refreshToken)
+          this.tokenStorage.setTokens(
+            res.accessToken,
+            res.refreshToken,
+            rememberMe
+          )
         )
       );
   }
@@ -51,7 +58,7 @@ export class AuthService {
     const refreshToken = this.tokenStorage.getRefreshToken();
 
     if (!refreshToken) {
-      throw new Error('No refresh token available.');
+      return throwError(() => new Error('No refresh token available.'));
     }
 
     const payload: RefreshRequest = { refreshToken };
@@ -59,9 +66,11 @@ export class AuthService {
     return this.http
       .post<RefreshResponse>(`${this.authBase}/refresh`, payload)
       .pipe(
-        tap(res =>
-          this.tokenStorage.setTokens(res.accessToken, res.refreshToken)
-        )
+        tap(res => {
+          // keeps current storage mode (local vs session) internally
+          // TokenStorageService chooses storage based on saved mode
+          this.tokenStorage.setTokens(res.accessToken, res.refreshToken);
+        })
       );
   }
 
@@ -93,6 +102,7 @@ export class AuthService {
 
   logout(): void {
     this.tokenStorage.clear();
+    this.router.navigateByUrl('/login');
   }
 
   // =============================

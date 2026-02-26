@@ -8,12 +8,7 @@ import {
 } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-
-export interface ApiError {
-  title?: string;
-  detail?: string;
-  status?: number;
-}
+import { ApiError } from '../http/api-error.model';
 
 @Injectable()
 export class ErrorInterceptor implements HttpInterceptor {
@@ -35,7 +30,7 @@ export class ErrorInterceptor implements HttpInterceptor {
               apiError.detail = error.error;
             }
           } else {
-            apiError = error.error;
+            apiError = error.error as ApiError;
           }
         }
 

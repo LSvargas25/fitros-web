@@ -1,8 +1,7 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { finalize } from 'rxjs/operators';
 
 import { AuthService } from '../../../core/auth/auth.service';
 
@@ -32,6 +31,7 @@ export class Login {
   private readonly fb = inject(FormBuilder);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   // UI state
   isSubmitting = false;
@@ -57,30 +57,38 @@ export class Login {
     return c.touched && c.invalid;
   }
 
-submit(): void {
+  submit(): void {
 
-  this.errorMessage = null;
-  this.isSubmitting = true;
+    if (this.form.invalid || this.isSubmitting) {
+      this.form.markAllAsTouched();
+      return;
+    }
 
-  const { email, password } = this.form.getRawValue();
+    this.errorMessage = null;
+    this.isSubmitting = true;
+    this.cdr.detectChanges();
 
-  this.auth.login({ email, password })
-    .subscribe({
-      next: () => {
-        console.log('NEXT');
-        this.isSubmitting = false;
-      },
-      error: (err) => {
-        console.log('ERROR:', err);
-        this.errorMessage = err?.detail || 'Error';
-        this.isSubmitting = false;
-      },
-      complete: () => {
-        console.log('COMPLETE');
-        this.isSubmitting = false;
-      }
-    });
-}
+  const { email, password, rememberMe } = this.form.getRawValue();
+
+
+
+    this.auth.login({ email, password }, rememberMe)
+      .subscribe({
+        next: () => {
+          this.isSubmitting = false;
+          this.cdr.detectChanges();
+          this.router.navigateByUrl('/dashboard');
+        },
+        error: (err) => {
+          this.isSubmitting = false;
+          this.errorMessage =
+            err?.detail ||
+            'Invalid email or password';
+
+          this.cdr.detectChanges();
+        }
+      });
+  }
 
   togglePassword(): void {
     this.showPassword = !this.showPassword;

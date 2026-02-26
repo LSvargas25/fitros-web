@@ -2,14 +2,15 @@ import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { TokenStorageService } from '../auth/token-storage.service';
 
-export const authGuard: CanActivateFn = () => {
+export const guestGuard: CanActivateFn = () => {
   const tokenStorage = inject(TokenStorageService);
   const router = inject(Router);
 
   const token = tokenStorage.getAccessToken();
 
-  if (!token) {
-    return router.parseUrl('/login');
+  // If already authenticated, do not allow /login
+  if (token) {
+    return router.parseUrl('/dashboard');
   }
 
   return true;
