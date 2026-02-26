@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 
-import { AuthService } from '../../../core/auth/auth.service';
+import { AuthService } from '../../../Core/Auth/auth.service';
 
 import {
   LucideAngularModule,

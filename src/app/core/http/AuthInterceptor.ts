@@ -8,8 +8,8 @@ import {
 import { Observable, throwError } from 'rxjs';
 import { catchError, switchMap } from 'rxjs/operators';
 
-import { TokenStorageService } from '../auth/token-storage.service';
-import { AuthService } from '../auth/auth.service';
+import { TokenStorageService } from '../Auth/token-storage.service';
+import { AuthService } from '../Auth/auth.service';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {

@@ -9,7 +9,7 @@ import {
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { finalize } from 'rxjs/operators';
-import { AuthService } from '../../../../core/auth/auth.service';
+import { AuthService } from '../../../../Core/Auth/auth.service';
 
 @Component({
   selector: 'app-reset-password',

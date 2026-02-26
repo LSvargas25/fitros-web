@@ -9,7 +9,7 @@ import {
   LoginResponse,
   RefreshRequest,
   RefreshResponse
-} from '../../shared/models/auth.models';
+} from '../../Shared/models/auth.models';
 import { TokenStorageService } from './token-storage.service';
 
 export type ResetPasswordRequest = {

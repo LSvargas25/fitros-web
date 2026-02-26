@@ -7,8 +7,8 @@ import { routes } from './app.routes';
 
 import { LucideAngularModule, Mail, Lock, Eye, EyeOff, AlertTriangle, Loader2, ShieldCheck } from 'lucide-angular';
 
-import { AuthInterceptor } from './core/http/AuthInterceptor';
-import { ErrorInterceptor } from './core/interceptors/error.interceptor';
+import { AuthInterceptor } from './Core/Http/AuthInterceptor';
+import { ErrorInterceptor } from './Core/Interceptors/error.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
