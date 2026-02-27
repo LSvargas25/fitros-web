@@ -9,4 +9,10 @@ import { Topbar } from '../../topbar/topbar/topbar';
   imports: [Sidebar, Topbar, RouterOutlet],
   templateUrl: './app-shell.html'
 })
-export class AppShell {}
+export class AppShell {
+  sidebarWidth = 288;
+
+  onSidebarWidthChange(width: number): void {
+    this.sidebarWidth = width;
+  }
+}

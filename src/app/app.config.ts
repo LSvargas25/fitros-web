@@ -17,8 +17,10 @@ import {
   Menu,
   Search,
   Bell,
+  LogOut,
   Settings,
-  LogOut
+  ChevronDown,
+  PanelLeftClose
 } from 'lucide-angular';
 
 import { AuthInterceptor } from './Core/Http/AuthInterceptor';
@@ -44,7 +46,9 @@ export const appConfig: ApplicationConfig = {
         Search,
         Bell,
         Settings,
-        LogOut
+        LogOut,
+        ChevronDown,
+         PanelLeftClose
       })
     ),
 
