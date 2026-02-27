@@ -1,11 +1,14 @@
 import {
   Component,
-  EventEmitter,
-  Output,
-  Input,
-  HostListener
+  inject,
+  HostListener,
+  OnDestroy,
+  effect,
+  signal
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { DialogService } from '../../../Core/Dialog/dialog.service';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-confirm-dialog',
@@ -13,33 +16,71 @@ import { CommonModule } from '@angular/common';
   imports: [CommonModule],
   templateUrl: './confirm-dialog.html'
 })
-export class ConfirmDialog {
+export class ConfirmDialog implements OnDestroy {
 
-  @Input() title = 'Confirm Action';
-  @Input() message = 'Are you sure you want to proceed?';
-  @Input() confirmText = 'Confirm';
-  @Input() cancelText = 'Cancel';
+  private readonly dialog = inject(DialogService);
 
-  @Output() confirmed = new EventEmitter<void>();
-  @Output() cancelled = new EventEmitter<void>();
+  private readonly stateSignal = toSignal(this.dialog.state$);
+
+  readonly state$ = this.dialog.state$;
+  readonly isVisible = signal(false);
+  readonly isAnimatingOut = signal(false);
+
+  constructor() {
+    effect(() => {
+      const state = this.stateSignal();
+
+      if (state?.visible) {
+        this.lockScroll();
+        this.isVisible.set(true);
+        this.isAnimatingOut.set(false);
+      }
+    });
+  }
+
+  private lockScroll(): void {
+    const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
+
+    document.body.style.overflow = 'hidden';
+    document.body.style.paddingRight = `${scrollBarWidth}px`;
+  }
+
+  private unlockScroll(): void {
+    document.body.style.overflow = '';
+    document.body.style.paddingRight = '';
+  }
 
   @HostListener('document:keydown.escape')
   onEsc(): void {
-    this.cancelled.emit();
+    this.close(false);
   }
 
   onBackdropClick(event: MouseEvent): void {
     const target = event.target as HTMLElement;
     if (target.classList.contains('dialog-backdrop')) {
-      this.cancelled.emit();
+      this.close(false);
     }
   }
 
   confirm(): void {
-    this.confirmed.emit();
+    this.close(true);
   }
 
   cancel(): void {
-    this.cancelled.emit();
+    this.close(false);
+  }
+
+  private close(result: boolean): void {
+    this.isAnimatingOut.set(true);
+
+    setTimeout(() => {
+      this.isVisible.set(false);
+      this.dialog.close(result);
+      this.unlockScroll();
+    }, 200);
+  }
+
+  ngOnDestroy(): void {
+    this.unlockScroll();
   }
 }

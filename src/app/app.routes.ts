@@ -1,10 +1,10 @@
 import { Routes } from '@angular/router';
 import { Login } from './features/Auth/login/login';
-import { Dashboard } from './features/Dashboard/dashboard';
+import { DashboardPage } from './features/Dashboard/dashboard.page/dashboard.page';
 import { authGuard } from './Core/Guards/auth.guard';
 import { guestGuard } from './Core/Guards/guest.guard';
 import { AppRole } from './Core/Auth/session-facade';
-import { AppShell } from './features/layout/app-shell/app-shell/app-shell';
+import { AppShell } from './Layout/app-shell/app-shell/app-shell';
 
 
 export const routes: Routes = [
@@ -41,7 +41,7 @@ export const routes: Routes = [
       },
       {
         path: 'dashboard',
-        component: Dashboard,
+        component: DashboardPage,
         data: { title: 'Dashboard' },
       },
       {
@@ -59,7 +59,7 @@ export const routes: Routes = [
       {
         path: 'exercises',
         loadComponent: () =>
-          import('./features/Exercises/exercises.page/exercises.page').then(c => c.ExercisesPage),
+          import('./features/Training/exercises/exercises.page').then(c => c.ExercisesPage),
         data: { title: 'Exercises' },
       },
     ],
