@@ -2,36 +2,28 @@
   class="h-16 bg-white/80 backdrop-blur-xl border-b border-black/5
          flex items-center px-6 gap-4 sticky top-0 z-40">
 
-  <!-- LEFT: Page context -->
   <div class="flex items-center gap-3 min-w-0">
 
-    <!-- mobile sidebar trigger (optional) -->
     <button
       (click)="menuClick.emit()"
       class="lg:hidden p-2 rounded-lg hover:bg-black/5 transition">
       <lucide-icon name="menu" class="w-5 h-5"></lucide-icon>
     </button>
 
-     <div class="min-w-0">
+    <div class="min-w-0">
       <h1 class="text-lg font-semibold text-slate-500 truncate">
-        {{ title }}
+        {{ title() }}
       </h1>
 
-      <!-- optional breadcrumb -->
-      <p class="text-xs text-slate-500 truncate" *ngIf="subtitle">
-        {{ subtitle }}
+      <p class="text-xs text-slate-500 truncate" *ngIf="subtitle()">
+        {{ subtitle() }}
       </p>
     </div>
-
   </div>
 
-  <!-- CENTER: Global search -->
-  <div class="flex-1 flex justify-center" *ngIf="showSearch">
+  <div class="flex-1 flex justify-center" *ngIf="showSearch()">
+    <div class="group relative w-full max-w-xl transition">
 
-    <div
-      class="group relative w-full max-w-xl transition">
-
-      <!-- search icon -->
       <lucide-icon
         name="search"
         class="absolute left-3 top-1/2 -translate-y-1/2
@@ -40,7 +32,8 @@
 
       <input
         type="text"
-        [(ngModel)]="searchTerm"
+        [ngModel]="searchTerm()"
+        (ngModelChange)="setSearch($event)"
         (keyup.enter)="onSearch()"
         placeholder="Search users, routines, exercises..."
         class="w-full pl-10 pr-4 py-2.5
@@ -54,7 +47,6 @@
                transition"
       />
 
-      <!-- keyboard hint -->
       <kbd
         class="hidden md:block absolute right-3 top-1/2 -translate-y-1/2
                text-[10px] text-slate-400 border border-black/10
@@ -63,55 +55,117 @@
       </kbd>
 
     </div>
-
   </div>
 
-  <!-- RIGHT: actions -->
   <div class="flex items-center gap-3">
 
-    <!-- quick search toggle (mobile) -->
     <button
       (click)="toggleSearch()"
       class="lg:hidden p-2 rounded-lg hover:bg-black/5 transition">
       <lucide-icon name="search" class="w-5 h-5"></lucide-icon>
     </button>
 
-    <!-- notifications -->
     <button
-       class="relative p-2 rounded-lg hover:bg-black/5 transition">
+      class="relative p-2 rounded-lg hover:bg-black/5 transition"
+      (click)="incrementNotifications()">
+
       <lucide-icon name="bell" class="w-5 h-5 text-black"></lucide-icon>
 
-      <!-- badge -->
       <span
-        *ngIf="notificationCount > 0"
+        *ngIf="notificationCount() > 0"
         class="absolute -top-1 -right-1
                bg-red-500 text-white text-[10px]
-               w-4 h-4 rounded-full flex items-center justify-center">
-        {{ notificationCount }}
+               min-w-[18px] h-[18px] px-1
+               rounded-full flex items-center justify-center
+               animate-badge-pop">
+        {{ notificationCount() }}
       </span>
     </button>
 
-    <!-- user menu -->
-    <div class="flex items-center gap-3 pl-2 border-l border-black/5">
+    <div class="relative flex items-center gap-3 pl-2 border-l border-black/5">
 
       <div class="hidden sm:block text-right">
         <p class="text-sm font-medium text-slate-800 leading-none">
-          {{ userName }}
+          {{ userName() }}
         </p>
         <p class="text-xs text-slate-500 leading-none">
-          {{ userRole }}
+          {{ userRole() }}
         </p>
       </div>
 
       <button
-        (click)="onProfileClick()"
-        class="w-9 h-9 rounded-full
-               bg-gradient-to-br from-[#C19A6B] to-[#a67c52]
-               text-white text-sm font-semibold
-               flex items-center justify-center
-               shadow-sm hover:shadow-md transition">
-        {{ userInitials }}
+        (click)="toggleDropdown()"
+        class="relative w-9 h-9 rounded-full overflow-hidden
+               ring-2 ring-transparent hover:ring-[#C19A6B]/40
+               transition">
+
+        <ng-container *ngIf="userAvatarUrl() && !avatarError(); else initialsAvatar">
+          <img
+            [src]="userAvatarUrl()!"
+            (error)="onAvatarError()"
+            class="w-full h-full object-cover" />
+        </ng-container>
+
+        <ng-template #initialsAvatar>
+          <div
+            class="w-full h-full
+                   bg-gradient-to-br from-[#C19A6B] to-[#a67c52]
+                   text-white text-sm font-semibold
+                   flex items-center justify-center">
+            {{ userInitials() }}
+          </div>
+        </ng-template>
+
+
+
       </button>
+
+    <div
+  *ngIf="dropdownOpen()"
+  class="absolute right-0 top-12 w-56
+         bg-white rounded-xl shadow-xl border border-black/5
+         py-2 animate-dropdown">
+
+  <!-- Profile -->
+  <button
+    (click)="onProfileClick()"
+    class="w-full text-left px-4 py-2 text-sm
+           text-gray-800 hover:bg-black/5
+           transition flex items-center gap-2">
+    <lucide-icon
+      name="user"
+      class="w-4 h-4 text-gray-700">
+    </lucide-icon>
+    <span class="font-medium">Profile</span>
+  </button>
+
+  <!-- Change photo -->
+  <button
+    (click)="onChangeAvatar()"
+    class="w-full text-left px-4 py-2 text-sm
+           text-gray-800 hover:bg-black/5
+           transition flex items-center gap-2">
+    <lucide-icon
+      name="image"
+      class="w-4 h-4 text-gray-700">
+    </lucide-icon>
+    <span class="font-medium">Change photo</span>
+  </button>
+
+  <!-- Logout -->
+  <button
+    (click)="onLogout()"
+    class="w-full text-left px-4 py-2 text-sm
+           text-red-600 hover:bg-red-50
+           transition flex items-center gap-2">
+    <lucide-icon
+      name="log-out"
+      class="w-4 h-4 text-red-600">
+    </lucide-icon>
+    <span class="font-medium">Logout</span>
+  </button>
+
+</div>
 
     </div>
 

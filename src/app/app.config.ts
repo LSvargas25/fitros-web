@@ -14,12 +14,15 @@ import {
   AlertTriangle,
   Loader2,
   ShieldCheck,
-  Menu,
-  Search,
-  Bell,
-  LogOut,
   Settings,
   ChevronDown,
+   Menu,
+  Search,
+  Bell,
+  User,
+  LogOut,
+  Camera,
+  Image,
   PanelLeftClose
 } from 'lucide-angular';
 
@@ -48,7 +51,9 @@ export const appConfig: ApplicationConfig = {
         Settings,
         LogOut,
         ChevronDown,
-         PanelLeftClose
+         PanelLeftClose,
+         Camera,
+  Image,User
       })
     ),
 

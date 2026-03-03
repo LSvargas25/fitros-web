@@ -1,8 +1,7 @@
 <aside
   (mouseenter)="onSidebarEnter()"
   (mouseleave)="onSidebarLeave()"
-  class="h-screen shrink-0 bg-[#787569] text-white flex flex-col shadow-xl
-         relative z-40
+  class="h-screen shrink-0 bg-[#787569] text-white flex flex-col shadow-xl relative z-40
          transition-[width] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]
          will-change-[width]"
   [class.sidebar-floating]="!pinned"
@@ -13,312 +12,137 @@
       <img src="/images/fitros-logo.png" alt="FitRos" class="w-16 h-16 object-contain" />
     </div>
 
-    <h1
-      *ngIf="!collapsed"
-      class="mt-4 text-xl font-bold tracking-wide transition-all duration-200"
-    >
+    <h1 *ngIf="!collapsed" class="mt-4 text-xl font-bold tracking-wide transition-all duration-200">
       FitRos
     </h1>
   </div>
 
   <nav class="flex-1 px-3 py-6 overflow-y-auto">
     <div class="space-y-1">
+      <ng-container *ngFor="let item of items">
 
-      <a
-        routerLink="/dashboard"
-        routerLinkActive="bg-white/15 text-white sidebar-active-glow"
-        [routerLinkActiveOptions]="{ exact: true }"
-        class="relative flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium hover:bg-white/10 hover:text-white transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-white/30"
-        [class.justify-center]="collapsed"
-        [class.px-2]="collapsed"
-      >
-        <span
-          class="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-white/70"
-          *ngIf="isExactActive('/dashboard') && !collapsed"
-        ></span>
-        <span class="truncate" *ngIf="!collapsed">Dashboard</span>
-      </a>
+        <!-- DIVIDER -->
+        <div *ngIf="item.kind === 'divider'" class="my-6 border-t border-white/10"></div>
 
-      <div
-        class="mt-2"
-        (mouseenter)="setHover('clients', true)"
-        (mouseleave)="setHover('clients', false)"
-      >
-        <button
-          type="button"
-          (click)="toggleGroup('clients')"
-          class="relative w-full flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium text-left hover:bg-white/10 hover:text-white transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-white/30"
-          [class.bg-white/10]="isClientsActive() || isGroupHovered('clients')"
-          [class.text-white]="isClientsActive()"
-          [class.ring-1]="isGroupHovered('clients')"
-          [class.ring-white/20]="isGroupHovered('clients')"
+        <!-- LINK -->
+        <a
+         *ngIf="item.kind === 'link' && canSee(item.permission)"
+          [routerLink]="item.route"
+          routerLinkActive="bg-white/15 text-white sidebar-active-glow"
+          [routerLinkActiveOptions]="{ exact: true }"
+          class="relative flex items-center gap-3 px-4 py-3 rounded-xl
+                 text-white/90 font-medium hover:bg-white/10 hover:text-white
+                 transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-white/30"
           [class.justify-center]="collapsed"
           [class.px-2]="collapsed"
+          [class.text-amber-300]="item.route === '/owner-admins'"
         >
           <span
-            class="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-white/70"
-            *ngIf="isClientsActive() && !collapsed"
+            class="absolute left-0 top-2 bottom-2 w-1 rounded-r-full"
+            [class.bg-white/70]="item.route !== '/owner-admins'"
+            [class.bg-amber-300]="item.route === '/owner-admins'"
+            *ngIf="isActiveStartsWith(item.activeStartsWith ?? item.route) && !collapsed"
           ></span>
 
-          <span class="truncate" *ngIf="!collapsed">Clients</span>
+          <span class="truncate" *ngIf="!collapsed">{{ item.label }}</span>
+        </a>
 
-          <span class="ml-auto flex items-center" *ngIf="!collapsed">
-            <lucide-icon
-              name="chevron-down"
-              class="w-4 h-4 transition-transform duration-200"
-              [class.rotate-180]="isGroupOpen('clients')"
-            ></lucide-icon>
-          </span>
-        </button>
-
+        <!-- GROUP -->
         <div
-          *ngIf="!collapsed"
-          class="flex flex-col gap-1 pl-6 pr-1 overflow-hidden transition-[max-height,opacity,margin] duration-250 ease-out"
-          [style.maxHeight]="isGroupOpen('clients') ? '220px' : '0px'"
-          [class.opacity-100]="isGroupOpen('clients')"
-          [class.opacity-0]="!isGroupOpen('clients')"
-          [class.mt-1]="isGroupOpen('clients')"
+          *ngIf="item.kind === 'group' && canSee(item.permission)"
+          class="mt-2"
+          (mouseenter)="setHover(item.key, true)"
+          (mouseleave)="setHover(item.key, false)"
         >
-          <a
-            routerLink="/clients"
-            routerLinkActive="bg-white/15 text-white sidebar-active-glow"
-            [routerLinkActiveOptions]="{ exact: true }"
-            class="relative flex items-center px-4 py-2 rounded-lg text-sm text-white/85 hover:bg-white/10 transition-all"
+          <button
+            type="button"
+            (click)="toggleGroup(item.key)"
+            class="relative w-full flex items-center gap-3 px-4 py-3 rounded-xl
+                   text-white/90 font-medium text-left hover:bg-white/10 hover:text-white
+                   transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-white/30"
+            [class.bg-white/10]="isGroupActive(item) || isGroupHovered(item.key)"
+            [class.text-white]="isGroupActive(item)"
+            [class.ring-1]="isGroupHovered(item.key)"
+            [class.ring-white/20]="isGroupHovered(item.key)"
+            [class.justify-center]="collapsed"
+            [class.px-2]="collapsed"
           >
             <span
-              class="absolute left-2 top-2 bottom-2 w-1 rounded-full bg-white/70"
-              *ngIf="isExactActive('/clients')"
+              class="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-white/70"
+              *ngIf="isGroupActive(item) && !collapsed"
             ></span>
-            View Clients
-          </a>
 
-          <a
-            routerLink="/clients/new"
-            routerLinkActive="bg-white/15 text-white sidebar-active-glow"
-            *ngIf="canManageClients()"
-            class="relative flex items-center px-4 py-2 rounded-lg text-sm text-emerald-300 hover:bg-emerald-500/20 transition-all"
+            <span class="truncate" *ngIf="!collapsed">{{ item.label }}</span>
+
+            <span class="ml-auto flex items-center" *ngIf="!collapsed">
+              <lucide-icon
+                name="chevron-down"
+                class="w-4 h-4 transition-transform duration-200"
+                [class.rotate-180]="isGroupOpen(item.key)"
+              ></lucide-icon>
+            </span>
+          </button>
+
+          <div
+            *ngIf="!collapsed"
+            class="flex flex-col gap-1 pl-6 pr-1 overflow-hidden transition-[max-height,opacity,margin]
+                   duration-250 ease-out"
+            [style.maxHeight]="isGroupOpen(item.key) ? '260px' : '0px'"
+            [class.opacity-100]="isGroupOpen(item.key)"
+            [class.opacity-0]="!isGroupOpen(item.key)"
+            [class.mt-1]="isGroupOpen(item.key)"
           >
-            <span
-              class="absolute left-2 top-2 bottom-2 w-1 rounded-full bg-emerald-300"
-              *ngIf="isExactActive('/clients/new')"
-            ></span>
-            + Add New Client
-          </a>
+            <ng-container *ngFor="let sub of item.items">
+              <a
+            *ngIf="canSee(sub.permission)"
+                [routerLink]="sub.route"
+                routerLinkActive="bg-white/15 text-white sidebar-active-glow"
+                class="relative flex items-center px-4 py-2 rounded-lg text-sm transition-all"
+                [ngClass]="getSubItemClass(sub.accent)"
+              >
+                <span
+                  class="absolute left-2 top-2 bottom-2 w-1 rounded-full"
+                  [class.bg-white/70]="sub.accent !== 'success' && sub.accent !== 'warning'"
+                  [class.bg-emerald-300]="sub.accent === 'success'"
+                  [class.bg-amber-300]="sub.accent === 'warning'"
+                  *ngIf="isActiveStartsWith(sub.activeStartsWith ?? sub.route)"
+                ></span>
+                {{ sub.label }}
+              </a>
+            </ng-container>
+          </div>
         </div>
-      </div>
 
-      <div
-        class="mt-6"
-        (mouseenter)="setHover('training', true)"
-        (mouseleave)="setHover('training', false)"
-      >
-        <button
-          type="button"
-          (click)="toggleGroup('training')"
-          class="relative w-full flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium text-left hover:bg-white/10 hover:text-white transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-white/30"
-          [class.bg-white/10]="isTrainingActive() || isGroupHovered('training')"
-          [class.text-white]="isTrainingActive()"
-          [class.ring-1]="isGroupHovered('training')"
-          [class.ring-white/20]="isGroupHovered('training')"
-          [class.justify-center]="collapsed"
-          [class.px-2]="collapsed"
-        >
-          <span
-            class="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-white/50"
-            *ngIf="isTrainingActive() && !collapsed"
-          ></span>
-
-          <span class="truncate" *ngIf="!collapsed">Training</span>
-
-          <span class="ml-auto flex items-center" *ngIf="!collapsed">
-            <lucide-icon
-              name="chevron-down"
-              class="w-4 h-4 transition-transform duration-200"
-              [class.rotate-180]="isGroupOpen('training')"
-            ></lucide-icon>
-          </span>
-        </button>
-
-        <div
-          *ngIf="!collapsed"
-          class="flex flex-col gap-1 pl-6 pr-1 overflow-hidden transition-[max-height,opacity,margin] duration-250 ease-out"
-          [style.maxHeight]="isGroupOpen('training') ? '220px' : '0px'"
-          [class.opacity-100]="isGroupOpen('training')"
-          [class.opacity-0]="!isGroupOpen('training')"
-          [class.mt-1]="isGroupOpen('training')"
-        >
-          <a routerLink="/routines" routerLinkActive="bg-white/15 text-white"
-             class="relative flex items-center px-4 py-2 rounded-lg text-sm text-white/85 hover:bg-white/10 transition-all">
-            <span class="absolute left-2 top-2 bottom-2 w-1 rounded-full bg-white/70"
-                  *ngIf="isExactActive('/routines')"></span>
-            Routines
-          </a>
-
-          <a routerLink="/exercises" routerLinkActive="bg-white/15 text-white"
-             class="relative flex items-center px-4 py-2 rounded-lg text-sm text-white/85 hover:bg-white/10 transition-all">
-            <span class="absolute left-2 top-2 bottom-2 w-1 rounded-full bg-white/70"
-                  *ngIf="isExactActive('/exercises')"></span>
-            Exercises
-          </a>
-        </div>
-      </div>
-
-      <div
-        class="mt-4"
-        (mouseenter)="setHover('nutrition', true)"
-        (mouseleave)="setHover('nutrition', false)"
-      >
-        <button
-          type="button"
-          (click)="toggleGroup('nutrition')"
-          class="relative w-full flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium text-left hover:bg-white/10 hover:text-white transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-white/30"
-          [class.bg-white/10]="isNutritionActive() || isGroupHovered('nutrition')"
-          [class.text-white]="isNutritionActive()"
-          [class.ring-1]="isGroupHovered('nutrition')"
-          [class.ring-white/20]="isGroupHovered('nutrition')"
-          [class.justify-center]="collapsed"
-          [class.px-2]="collapsed"
-        >
-          <span class="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-white/50"
-                *ngIf="isNutritionActive() && !collapsed"></span>
-
-          <span class="truncate" *ngIf="!collapsed">Nutrition</span>
-
-          <span class="ml-auto flex items-center" *ngIf="!collapsed">
-            <lucide-icon
-              name="chevron-down"
-              class="w-4 h-4 transition-transform duration-200"
-              [class.rotate-180]="isGroupOpen('nutrition')"
-            ></lucide-icon>
-          </span>
-        </button>
-
-        <div
-          *ngIf="!collapsed"
-          class="flex flex-col gap-1 pl-6 pr-1 overflow-hidden transition-[max-height,opacity,margin] duration-250 ease-out"
-          [style.maxHeight]="isGroupOpen('nutrition') ? '220px' : '0px'"
-          [class.opacity-100]="isGroupOpen('nutrition')"
-          [class.opacity-0]="!isGroupOpen('nutrition')"
-          [class.mt-1]="isGroupOpen('nutrition')"
-        >
-          <a routerLink="/meal-plans" routerLinkActive="bg-white/15 text-white"
-             class="relative flex items-center px-4 py-2 rounded-lg text-sm text-white/85 hover:bg-white/10 transition-all">
-            <span class="absolute left-2 top-2 bottom-2 w-1 rounded-full bg-white/70"
-                  *ngIf="isExactActive('/meal-plans')"></span>
-            Meal Plans
-          </a>
-
-          <a routerLink="/foods" routerLinkActive="bg-white/15 text-white"
-             class="relative flex items-center px-4 py-2 rounded-lg text-sm text-white/85 hover:bg-white/10 transition-all">
-            <span class="absolute left-2 top-2 bottom-2 w-1 rounded-full bg-white/70"
-                  *ngIf="isExactActive('/foods')"></span>
-            Foods
-          </a>
-        </div>
-      </div>
-
-      <div
-        class="mt-4"
-        (mouseenter)="setHover('progress', true)"
-        (mouseleave)="setHover('progress', false)"
-      >
-        <button
-          type="button"
-          (click)="toggleGroup('progress')"
-          class="relative w-full flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium text-left hover:bg-white/10 hover:text-white transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-white/30"
-          [class.bg-white/10]="isProgressActive() || isGroupHovered('progress')"
-          [class.text-white]="isProgressActive()"
-          [class.ring-1]="isGroupHovered('progress')"
-          [class.ring-white/20]="isGroupHovered('progress')"
-          [class.justify-center]="collapsed"
-          [class.px-2]="collapsed"
-        >
-          <span class="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-white/50"
-                *ngIf="isProgressActive() && !collapsed"></span>
-
-          <span class="truncate" *ngIf="!collapsed">Progress</span>
-
-          <span class="ml-auto flex items-center" *ngIf="!collapsed">
-            <lucide-icon
-              name="chevron-down"
-              class="w-4 h-4 transition-transform duration-200"
-              [class.rotate-180]="isGroupOpen('progress')"
-            ></lucide-icon>
-          </span>
-        </button>
-
-        <div
-          *ngIf="!collapsed"
-          class="flex flex-col gap-1 pl-6 pr-1 overflow-hidden transition-[max-height,opacity,margin] duration-250 ease-out"
-          [style.maxHeight]="isGroupOpen('progress') ? '220px' : '0px'"
-          [class.opacity-100]="isGroupOpen('progress')"
-          [class.opacity-0]="!isGroupOpen('progress')"
-          [class.mt-1]="isGroupOpen('progress')"
-        >
-          <a routerLink="/measures" routerLinkActive="bg-white/15 text-white"
-             class="relative flex items-center px-4 py-2 rounded-lg text-sm text-white/85 hover:bg-white/10 transition-all">
-            <span class="absolute left-2 top-2 bottom-2 w-1 rounded-full bg-white/70"
-                  *ngIf="isExactActive('/measures')"></span>
-            Measurements
-          </a>
-
-          <a routerLink="/reports" routerLinkActive="bg-white/15 text-white"
-             class="relative flex items-center px-4 py-2 rounded-lg text-sm text-white/85 hover:bg-white/10 transition-all">
-            <span class="absolute left-2 top-2 bottom-2 w-1 rounded-full bg-white/70"
-                  *ngIf="isExactActive('/reports')"></span>
-            Reports
-          </a>
-        </div>
-      </div>
-
-      <div class="my-6 border-t border-white/10"></div>
-
-      <a
-        routerLink="/profile"
-        routerLinkActive="bg-white/15 text-white sidebar-active-glow"
-        [routerLinkActiveOptions]="{ exact: true }"
-        class="relative flex items-center gap-3 px-4 py-3 rounded-xl text-white/90 font-medium hover:bg-white/10 hover:text-white transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-white/30"
-        [class.justify-center]="collapsed"
-        [class.px-2]="collapsed"
-      >
-        <span
-          class="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-white/70"
-          *ngIf="isExactActive('/profile') && !collapsed"
-        ></span>
-        <span class="truncate" *ngIf="!collapsed">Profile</span>
-      </a>
+      </ng-container>
     </div>
   </nav>
 
- <div
-  class="p-4 border-t border-white/10 flex items-center"
-  [class.justify-between]="!collapsed"
-  [class.justify-center]="collapsed"
->
+  <div class="p-4 border-t border-white/10 flex items-center"
+       [class.justify-between]="!collapsed"
+       [class.justify-center]="collapsed">
 
-  <button
-    type="button"
-    (click)="toggleCollapsed()"
-    class="p-3 rounded-xl hover:bg-white/10 transition-all duration-200
-           flex items-center justify-center active:scale-95"
-    [title]="collapsed ? 'Expand sidebar' : 'Collapse sidebar'"
-  >
-    <lucide-icon
-      [name]="collapsed ? 'panel-left-open' : 'panel-left-close'"
-      class="w-5 h-5 text-white/80 transition-transform duration-300"
-      [class.rotate-180]="!collapsed"
-    ></lucide-icon>
-  </button>
+    <button
+      type="button"
+      (click)="toggleCollapsed()"
+      class="p-3 rounded-xl hover:bg-white/10 transition-all duration-200
+             flex items-center justify-center active:scale-95"
+      [title]="collapsed ? 'Expand sidebar' : 'Collapse sidebar'"
+    >
+      <lucide-icon
+        [name]="collapsed ? 'panel-left-open' : 'panel-left-close'"
+        class="w-5 h-5 text-white/80 transition-transform duration-300"
+        [class.rotate-180]="!collapsed"
+      ></lucide-icon>
+    </button>
 
-  <button
-    *ngIf="!collapsed"
-    (click)="requestLogout()"
-    class="p-3 rounded-xl hover:bg-red-500/20 transition-all duration-200
-           active:scale-95"
-    title="Logout"
-  >
-    <lucide-icon name="log-out" class="w-5 h-5 text-white/80"></lucide-icon>
-  </button>
+    <button
+      *ngIf="!collapsed"
+      (click)="requestLogout()"
+      class="p-3 rounded-xl hover:bg-red-500/20 transition-all duration-200 active:scale-95"
+      title="Logout"
+    >
+      <lucide-icon name="log-out" class="w-5 h-5 text-white/80"></lucide-icon>
+    </button>
 
-</div>
+  </div>
 </aside>

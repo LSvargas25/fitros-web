@@ -1,53 +1,115 @@
 import { Injectable, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { TokenStorageService } from './token-storage.service';
+import { PERMISSIONS } from './route-permissions';
 
-export type AppRole = 'Admin' | 'Coach' | 'Client';
+export type AppRole = 'OwnerApp' | 'Admin' | 'Coach' | 'Client';
 
 @Injectable({ providedIn: 'root' })
 export class SessionFacade {
   private readonly tokenStorage = inject(TokenStorageService);
   private readonly router = inject(Router);
 
-  get role(): AppRole {
-    const token = this.tokenStorage.getAccessToken();
-    const role = this.tryReadRoleFromJwt(token);
+  private _cachedToken: string | null = null;
+  private _cachedPayload: any | null = null;
 
-    if (role === 'Admin' || role === 'Coach' || role === 'Client') {
-      return role;
+  private getJwtPayload(): any | null {
+    const token = this.tokenStorage.getAccessToken();
+    if (!token) return null;
+
+    if (this._cachedToken === token && this._cachedPayload) {
+      return this._cachedPayload;
     }
 
-    return 'Client';
+    try {
+      const payload = JSON.parse(
+        atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))
+      );
+
+      this._cachedToken = token;
+      this._cachedPayload = payload;
+
+      return payload;
+    } catch {
+      return null;
+    }
+  }
+
+  get role(): AppRole {
+    const payload = this.getJwtPayload();
+
+    const raw =
+      payload?.['role'] ??
+      payload?.['Role'] ??
+      payload?.['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] ??
+      null;
+
+    switch (raw) {
+      case 'OwnerApp':
+      case 'Admin':
+      case 'Coach':
+      case 'Client':
+        return raw;
+      default:
+        return 'Client';
+    }
+  }
+
+  get userEmail(): string | null {
+    const payload = this.getJwtPayload();
+    return payload?.['email'] ?? payload?.['Email'] ?? null;
+  }
+
+  get userName(): string | null {
+    const payload = this.getJwtPayload();
+    return payload?.['name'] ?? payload?.['unique_name'] ?? null;
+  }
+
+  get userAvatarUrl(): string | null {
+    const payload = this.getJwtPayload();
+    return payload?.['avatarUrl'] ?? payload?.['picture'] ?? null;
   }
 
   logout(): void {
     this.tokenStorage.clear();
+    this._cachedPayload = null;
+    this._cachedToken = null;
     this.router.navigateByUrl('/login');
   }
 
-  private tryReadRoleFromJwt(token: string | null | undefined): string | null {
-    if (!token) return null;
+  hasAnyRole(allowed: readonly AppRole[]): boolean {
+    return allowed.includes(this.role);
+  }
 
-    const parts = token.split('.');
-    if (parts.length !== 3) return null;
+  canViewClients(): boolean {
+    return this.hasAnyRole(PERMISSIONS.CLIENTS);
+  }
 
-    try {
-      const payload = JSON.parse(
-        atob(parts[1].replace(/-/g, '+').replace(/_/g, '/'))
-      );
+  canViewOwnerAdmins(): boolean {
+    return this.hasAnyRole(PERMISSIONS.OWNER_ADMINS);
+  }
 
-      const raw =
-        payload['role'] ??
-        payload['Role'] ??
-        payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] ??
-        null;
+  canSeeSelfTraining(): boolean {
+    return this.hasAnyRole(PERMISSIONS.TRAINING_SELF);
+  }
 
-      if (typeof raw === 'string') return raw;
-      if (Array.isArray(raw) && raw.length > 0) return String(raw[0]);
+  canSeeSelfNutrition(): boolean {
+    return this.hasAnyRole(PERMISSIONS.NUTRITION_SELF);
+  }
 
-      return null;
-    } catch {
-      return null;
-    }
+  canSeeSelfProgress(): boolean {
+    return this.hasAnyRole(PERMISSIONS.PROGRESS_SELF);
+  }
+
+  canManageTraining(): boolean {
+    return this.hasAnyRole(PERMISSIONS.TRAINING_MANAGE);
+  }
+
+  canManageNutrition(): boolean {
+    return this.hasAnyRole(PERMISSIONS.NUTRITION_MANAGE);
+  }
+
+  canManageProgress(): boolean {
+    return this.hasAnyRole(PERMISSIONS.PROGRESS_MANAGE);
   }
 }

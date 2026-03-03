@@ -1,21 +1,27 @@
-import { Component, inject, OnDestroy, OnInit, Output, EventEmitter } from '@angular/core';
-import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
-import { LucideAngularModule } from 'lucide-angular';
-import { filter, Subscription } from 'rxjs';
-import { DialogService } from '../../../Core/Dialog/dialog.service';
+import { Component, EventEmitter, OnDestroy, OnInit, Output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { SessionFacade } from '../../../Core/Auth/session-facade';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { filter, Subscription } from 'rxjs';
+import { LucideAngularModule } from 'lucide-angular';
 
-type GroupKey = 'training' | 'nutrition' | 'progress' | 'clients';
+import { DialogService } from '../../../Core/Dialog/dialog.service';
+import { SessionFacade, AppRole } from '../../../Core/Auth/session-facade';
+import { NAV_ITEMS, NavItem } from '../sidebar/sidebar-nav';
+import { PERMISSIONS, PermissionKey } from '../../../Core/Auth/route-permissions';
+
+type GroupState = Record<string, boolean>;
+type HoverState = Record<string, boolean>;
 
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [RouterLink, RouterLinkActive, LucideAngularModule, CommonModule],
+  imports: [CommonModule, RouterLink, RouterLinkActive, LucideAngularModule],
   templateUrl: './sidebar.html',
   styleUrl: './sidebar.css',
 })
 export class Sidebar implements OnInit, OnDestroy {
+
+  private permissionCache = new Map<PermissionKey, boolean>();
   private readonly dialog = inject(DialogService);
   private readonly router = inject(Router);
   private readonly session = inject(SessionFacade);
@@ -32,33 +38,33 @@ export class Sidebar implements OnInit, OnDestroy {
   private readonly subs = new Subscription();
   private hasUserInteracted = false;
 
-  private openGroups: Record<GroupKey, boolean> = {
-    training: false,
-    nutrition: false,
-    progress: false,
-    clients: false,
-  };
+  // estado por key (groups)
+  openGroups: GroupState = {};
+  hoverGroups: HoverState = {};
 
-  private hoverGroups: Record<GroupKey, boolean> = {
-    training: false,
-    nutrition: false,
-    progress: false,
-    clients: false,
-  };
+  // fuente de verdad del menú
+  readonly items: NavItem[] = NAV_ITEMS;
 
-  get role() {
+  get role(): AppRole {
     return this.session.role;
   }
 
-  canManageClients(): boolean {
-    return this.role === 'Admin' || this.role === 'Coach';
-  }
-
   ngOnInit(): void {
+      this.permissionCache.clear();
+    for (const item of this.items) {
+      if (item.kind === 'group') {
+        this.openGroups[item.key] = false;
+        this.hoverGroups[item.key] = false;
+      }
+    }
+
     this.subs.add(
       this.router.events
         .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
-        .subscribe(e => this.syncGroupsWithRoute(e.urlAfterRedirects))
+        .subscribe(() => {
+          // opcional: podrías auto-abrir el grupo activo si quieres
+          // aquí lo dejamos simple
+        })
     );
 
     this.emitWidth();
@@ -68,21 +74,69 @@ export class Sidebar implements OnInit, OnDestroy {
     this.subs.unsubscribe();
   }
 
+  // ============================
+  // VISIBILITY / PERMISSIONS
+  // ============================
+canSee(permission?: PermissionKey): boolean {
+  if (!permission) return true;
+
+  // cache hit
+  if (this.permissionCache.has(permission)) {
+    return this.permissionCache.get(permission)!;
+  }
+
+  const allowedRoles = PERMISSIONS[permission];
+  const result = allowedRoles.includes(this.role);
+
+  this.permissionCache.set(permission, result);
+
+  return result;
+}
+
+  // ============================
+  // ACTIVE CHECK
+  // ============================
+  isActiveStartsWith(prefix?: string): boolean {
+    if (!prefix) return false;
+    return this.router.url.startsWith(prefix);
+  }
+
+  // ============================
+  // GROUP UI
+  // ============================
+  toggleGroup(key: string): void {
+    this.hasUserInteracted = true;
+
+    const isOpen = !!this.openGroups[key];
+
+    Object.keys(this.openGroups).forEach(k => (this.openGroups[k] = false));
+    this.openGroups[key] = !isOpen;
+  }
+
+  setHover(key: string, value: boolean): void {
+    this.hoverGroups[key] = value;
+  }
+
+  isGroupOpen(key: string): boolean {
+    if (!this.hasUserInteracted) return false;
+    return !!this.openGroups[key] || (!!this.hoverGroups[key] && !this.openGroups[key]);
+  }
+
+  isGroupHovered(key: string): boolean {
+    return !!this.hoverGroups[key];
+  }
+
+  // ============================
+  // COLLAPSE / PIN
+  // ============================
   toggleCollapsed(): void {
     this.pinned = !this.pinned;
-
-    if (!this.pinned) {
-      this.collapsed = true;
-    } else {
-      this.collapsed = false;
-    }
-
+    this.collapsed = !this.pinned;
     this.emitWidth();
   }
 
   onSidebarEnter(): void {
     this.hoveringSidebar = true;
-
     if (!this.pinned) {
       this.collapsed = false;
       this.emitWidth();
@@ -91,14 +145,13 @@ export class Sidebar implements OnInit, OnDestroy {
 
   onSidebarLeave(): void {
     this.hoveringSidebar = false;
-
     if (!this.pinned) {
       this.collapsed = true;
       this.emitWidth();
     }
   }
 
-  shouldShowSidebar(): boolean {
+  private shouldShowSidebar(): boolean {
     if (this.pinned) return true;
     return this.hoveringSidebar;
   }
@@ -109,61 +162,13 @@ export class Sidebar implements OnInit, OnDestroy {
       : this.COLLAPSED_WIDTH;
   }
 
-  toggleGroup(key: GroupKey): void {
-    this.hasUserInteracted = true;
-
-    const isOpen = this.openGroups[key];
-
-    Object.keys(this.openGroups).forEach(k => {
-      this.openGroups[k as GroupKey] = false;
-    });
-
-    this.openGroups[key] = !isOpen;
-  }
-
-  setHover(key: GroupKey, value: boolean): void {
-    this.hoverGroups[key] = value;
-  }
-
-  isGroupHovered(key: GroupKey): boolean {
-    return this.hoverGroups[key];
-  }
-
-  isGroupOpen(key: GroupKey): boolean {
-    if (!this.hasUserInteracted) return false;
-
-    const clickedOpen = this.openGroups[key];
-    const hoveredOpen = this.hoverGroups[key];
-
-    return clickedOpen || (!clickedOpen && hoveredOpen);
-  }
-
-  isExactActive(path: string): boolean {
-    return this.router.url === path;
-  }
-
-  isClientsActive(): boolean {
-    return this.router.url.startsWith('/clients');
-  }
-
-  isTrainingActive(): boolean {
-    return this.router.url.startsWith('/routines') || this.router.url.startsWith('/exercises');
-  }
-
-  isNutritionActive(): boolean {
-    return this.router.url.startsWith('/meal-plans') || this.router.url.startsWith('/foods');
-  }
-
-  isProgressActive(): boolean {
-    return this.router.url.startsWith('/measures') || this.router.url.startsWith('/reports');
-  }
-
-  private syncGroupsWithRoute(_: string): void {}
-
   private emitWidth(): void {
     this.widthChange.emit(this.sidebarWidth);
   }
 
+  // ============================
+  // LOGOUT
+  // ============================
   async requestLogout(): Promise<void> {
     const confirmed = await this.dialog.confirm({
       title: 'Confirm Logout',
@@ -174,7 +179,24 @@ export class Sidebar implements OnInit, OnDestroy {
 
     if (!confirmed) return;
 
-    localStorage.clear();
-    this.router.navigate(['/login']);
+    this.session.logout();
+  }
+
+  // ============================
+  // HELPERS FOR TEMPLATE
+  // ============================
+  isGroupActive(item: Extract<NavItem, { kind: 'group' }>): boolean {
+    return item.items.some(i => this.isActiveStartsWith(i.activeStartsWith ?? i.route));
+  }
+
+  getSubItemClass(accent?: 'default' | 'success' | 'warning'): string {
+    switch (accent) {
+      case 'success':
+        return 'text-emerald-300 hover:bg-emerald-500/20';
+      case 'warning':
+        return 'text-amber-300 hover:bg-amber-500/20';
+      default:
+        return 'text-white/85 hover:bg-white/10';
+    }
   }
 }
