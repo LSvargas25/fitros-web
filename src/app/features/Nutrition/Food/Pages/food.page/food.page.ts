@@ -5,6 +5,7 @@ import { Component } from '@angular/core';
   imports: [],
   templateUrl: './food.page.html',
   styleUrl: './food.page.css',
+  standalone:true,
 })
 export class FoodPage {
 
