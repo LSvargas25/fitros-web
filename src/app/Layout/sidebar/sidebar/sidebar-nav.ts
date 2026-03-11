@@ -154,9 +154,21 @@ export const NAV_ITEMS: NavItem[] = [
   },
 
   {
-    kind: 'link',
-    label: 'Owner Admins',
-    route: '/owner-admins',
+    kind: 'group',
+    key: 'owner',
+    label: 'Owner Panel',
     permission: 'OWNER_ADMINS',
+    items: [
+      {
+        label: 'Dashboard',
+        route: '/owner-admins',
+        permission: 'OWNER_ADMINS',
+      },
+      {
+        label: 'Admin Management',
+        route: '/owner/admin-management',
+        permission: 'OWNER_ADMINS',
+      },
+    ],
   },
 ];

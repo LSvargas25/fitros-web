@@ -193,6 +193,14 @@ export const routes: Routes = [
             .then(c => c.PrincipalOwnerPage),
         data: { title: 'Owner Admins' },
       },
+      {
+        path: 'owner/admin-management',
+        canActivate: [roleGuard(PERMISSIONS.OWNER_ADMINS)],
+        loadComponent: () =>
+          import('./features/OwnerAdmin/Components/admin-management/admin-management.component')
+            .then(c => c.AdminManagementComponent),
+        data: { title: 'Admin Management' },
+      },
     ],
   },
 
