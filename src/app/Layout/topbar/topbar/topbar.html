@@ -65,22 +65,65 @@
       <lucide-icon name="search" class="w-5 h-5"></lucide-icon>
     </button>
 
-    <button
-      class="relative p-2 rounded-lg hover:bg-black/5 transition"
-      (click)="incrementNotifications()">
+    <!-- Bell + notification panel -->
+    <div class="relative">
+      <button
+        class="relative p-2 rounded-lg hover:bg-black/5 transition"
+        (click)="onBellClick()">
 
-      <lucide-icon name="bell" class="w-5 h-5 text-black"></lucide-icon>
+        <lucide-icon name="bell" class="w-5 h-5 text-black"></lucide-icon>
 
-      <span
-        *ngIf="notificationCount() > 0"
-        class="absolute -top-1 -right-1
-               bg-red-500 text-white text-[10px]
-               min-w-[18px] h-[18px] px-1
-               rounded-full flex items-center justify-center
-               animate-badge-pop">
-        {{ notificationCount() }}
-      </span>
-    </button>
+        @if (notificationCount() > 0) {
+          <span
+            class="absolute -top-1 -right-1
+                   bg-red-500 text-white text-[10px]
+                   min-w-[18px] h-[18px] px-1
+                   rounded-full flex items-center justify-center
+                   animate-badge-pop">
+            {{ notificationCount() }}
+          </span>
+        }
+      </button>
+
+      <!-- Notification panel -->
+      @if (showNotifPanel()) {
+        <div class="absolute right-0 top-12 w-80 bg-white rounded-xl shadow-xl border border-black/5
+                    py-2 z-50 max-h-[420px] flex flex-col"
+             (click)="$event.stopPropagation()">
+
+          <div class="flex items-center justify-between px-4 py-2 border-b border-stone-100">
+            <span class="text-xs font-bold text-[#1e3d59] uppercase tracking-wider">Notifications</span>
+            <button (click)="closeNotifPanel()"
+                    class="w-6 h-6 rounded flex items-center justify-center text-stone-400 hover:bg-stone-100 transition-colors">
+              <lucide-icon name="x" class="w-3.5 h-3.5"></lucide-icon>
+            </button>
+          </div>
+
+          <div class="overflow-y-auto flex-1">
+            @if (notifications().length === 0) {
+              <p class="text-xs text-stone-400 text-center py-8">All caught up!</p>
+            }
+            @for (notif of notifications(); track notif.id) {
+              <div class="flex items-start gap-3 px-4 py-3 hover:bg-[#F5EFE6]/60 cursor-pointer transition-colors border-b border-stone-50 last:border-0"
+                   (click)="onNotifClick(notif)">
+                <div class="w-2 h-2 rounded-full bg-[#C6A969] mt-1.5 shrink-0"></div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-xs font-semibold text-[#1e3d59] truncate">{{ notif.title }}</p>
+                  <p class="text-[11px] text-stone-500 mt-0.5 line-clamp-2">{{ notif.message }}</p>
+                  <p class="text-[10px] text-stone-400 mt-1">{{ notif.createdAt | date:'short' }}</p>
+                </div>
+                <button (click)="onDeleteNotif(notif, $event)"
+                        class="w-5 h-5 rounded flex items-center justify-center text-stone-300
+                               hover:text-red-400 hover:bg-red-50 transition-colors shrink-0 mt-0.5"
+                        title="Dismiss">
+                  <lucide-icon name="x" class="w-3 h-3"></lucide-icon>
+                </button>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
 
     <div class="relative flex items-center gap-3 pl-2 border-l border-black/5">
 
@@ -115,8 +158,6 @@
             {{ userInitials() }}
           </div>
         </ng-template>
-
-
 
       </button>
 

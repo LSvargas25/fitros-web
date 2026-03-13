@@ -169,6 +169,16 @@ export const NAV_ITEMS: NavItem[] = [
         route: '/owner/admin-management',
         permission: 'OWNER_ADMINS',
       },
+      {
+        label: 'Coach Management',
+        route: '/owner/coach-management',
+        permission: 'OWNER_ADMINS',
+      },
+      {
+        label: 'Client Management',
+        route: '/owner/client-management',
+        permission: 'OWNER_ADMINS',
+      },
     ],
   },
 ];

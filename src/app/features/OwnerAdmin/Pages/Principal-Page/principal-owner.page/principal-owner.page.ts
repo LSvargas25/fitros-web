@@ -9,14 +9,15 @@ import {
   UserCircle, Phone, Heart, Star, Activity,
   MessageSquare, Briefcase, FileBarChart,
   UsersRound, Settings, BarChart3, Wallet,
-  Plus, TrendingDown, Pencil, Trash2,
+  Plus, TrendingDown, Pencil, Trash2, UserCheck,
 } from 'lucide-angular';
 
-import { CreateGymModalComponent } from '../../../Components/create-gym-modal/create-gym-modal.component/create-gym-modal.component';
-import { EditGymModalComponent }   from '../../../Components/edit-gym-modal/edit-gym-modal.component/edit-gym-modal.component';
-import { GymService }              from '../../../services/gym.service';
-import { GymListItemResponse }     from '../../../Models/gym.models';
-import { DialogService }           from '../../../../../Core/Dialog/dialog.service';
+import { CreateGymModalComponent }    from '../../../Components/create-gym-modal/create-gym-modal.component/create-gym-modal.component';
+import { EditGymModalComponent }      from '../../../Components/edit-gym-modal/edit-gym-modal.component/edit-gym-modal.component';
+import { AssignAdminModalComponent }  from '../../../Components/assign-admin-modal/assign-admin-modal.component';
+import { GymService }                 from '../../../services/gym.service';
+import { GymListItemResponse }        from '../../../Models/gym.models';
+import { DialogService }              from '../../../../../Core/Dialog/dialog.service';
 
 
 
@@ -58,7 +59,7 @@ export interface SignupAvatar {
 @Component({
   selector:    'app-principal-owner-page',
   standalone:  true,
-  imports:     [CommonModule, LucideAngularModule, CreateGymModalComponent, EditGymModalComponent],
+  imports:     [CommonModule, LucideAngularModule, CreateGymModalComponent, EditGymModalComponent, AssignAdminModalComponent],
   templateUrl: './principal-owner.page.html',
 })
 export class PrincipalOwnerPage implements OnInit {
@@ -93,6 +94,7 @@ export class PrincipalOwnerPage implements OnInit {
   readonly Plus          = Plus;
   readonly Pencil        = Pencil;
   readonly Trash2        = Trash2;
+  readonly UserCheck     = UserCheck;
 
   // ── Remote state ──────────────────────────────────────────────────────────
   readonly isLoading       = signal<boolean>(true);
@@ -103,6 +105,11 @@ export class PrincipalOwnerPage implements OnInit {
   // ── Edit modal state ──────────────────────────────────────────────────────
   readonly showEditModal  = signal(false);
   readonly editingGymId   = signal<string | null>(null);
+
+  // ── Assign Admin modal state ───────────────────────────────────────────────
+  readonly showAssignModal   = signal(false);
+  readonly assigningGymId    = signal<string | null>(null);
+  readonly assigningGymName  = signal('');
 
   // ── Computed — numbers ────────────────────────────────────────────────────
   readonly totalGyms     = computed(() => this.stats()?.totalGyms     ?? 0);
@@ -217,6 +224,24 @@ export class PrincipalOwnerPage implements OnInit {
 
   onGymUpdated(): void {
     this.closeEditModal();
+    this.loadDashboard();
+  }
+
+  // ── Assign Admin ──────────────────────────────────────────────────────────
+  openAssignAdmin(gymId: string, gymName: string): void {
+    this.assigningGymId.set(gymId);
+    this.assigningGymName.set(gymName);
+    this.showAssignModal.set(true);
+  }
+
+  closeAssignAdmin(): void {
+    this.showAssignModal.set(false);
+    this.assigningGymId.set(null);
+    this.assigningGymName.set('');
+  }
+
+  onAdminAssigned(): void {
+    this.closeAssignAdmin();
     this.loadDashboard();
   }
 

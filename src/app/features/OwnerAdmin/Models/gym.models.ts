@@ -9,15 +9,10 @@ export interface GymListItemResponse {
 }
 
 export interface CreateGymRequest {
-  name:              string;
-  address:           string;
-  phoneNumber:       string;
-  logoUrl?:          string;
-  existingAdminUserId?: string | null;
-  adminEmail?:       string | null;
-  adminFirstName?:   string | null;
-  adminLastName?:    string | null;
-  adminPassword?:    string | null;
+  name:        string;
+  address:     string;
+  phoneNumber: string;
+  logoUrl?:    string;
 }
 
 export interface GymDetail {

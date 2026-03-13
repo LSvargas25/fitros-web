@@ -9,6 +9,17 @@ export interface AdminUser {
   firstName: string;
   lastName: string;
   gymId?: string | null;
+  gymName?: string | null;
+  status: string;
+}
+
+export interface CoachUser {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  gymId?: string | null;
+  gymName?: string | null;
   status: string;
 }
 
@@ -26,28 +37,142 @@ export interface CreateUserDto {
   password: string;
 }
 
+export interface CreateClientDto {
+  email: string;
+  firstName: string;
+  lastName: string;
+  password: string;
+  gymId?: string;
+}
+
+export interface UpdateUserDto {
+  firstName: string;
+  lastName: string;
+  email: string;
+}
+
+export interface ClientListItem {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  status: string;
+  gymId?: string | null;
+  gymName?: string | null;
+  coachId?: string | null;
+  coachName?: string | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class UserService {
   private readonly http    = inject(HttpClient);
-  private readonly baseUrl = `${environment.apiBaseUrl}/api/users`;
+  private readonly base    = `${environment.apiBaseUrl}/api`;
+
+  // ── Admins ─────────────────────────────────────────────────────────────────
+  getAdmins(): Observable<AdminUser[]> {
+    return this.http.get<AdminUser[]>(`${this.base}/admins`);
+  }
+
+  getAdminById(id: string): Observable<AdminUser> {
+    return this.http.get<AdminUser>(`${this.base}/admins/${id}`);
+  }
 
   createAdmin(dto: CreateAdminDto): Observable<AdminUser> {
-    return this.http.post<AdminUser>(`${this.baseUrl}/admins`, dto);
+    return this.http.post<AdminUser>(`${this.base}/admins`, dto);
   }
 
-  getAdmins(): Observable<AdminUser[]> {
-    return this.http.get<AdminUser[]>(`${this.baseUrl}/admins`);
+  updateAdmin(id: string, dto: UpdateUserDto): Observable<void> {
+    return this.http.put<void>(`${this.base}/admins/${id}`, dto);
   }
 
-  assignAdminToGym(adminId: string, gymId: string): Observable<void> {
-    return this.http.put<void>(`${this.baseUrl}/admins/${adminId}/gym`, { gymId });
+  activateAdmin(id: string): Observable<void> {
+    return this.http.patch<void>(`${this.base}/admins/${id}/activate`, {});
   }
 
-  createClient(dto: CreateUserDto): Observable<void> {
-    return this.http.post<void>(`${this.baseUrl}/clients`, dto);
+  deactivateAdmin(id: string): Observable<void> {
+    return this.http.patch<void>(`${this.base}/admins/${id}/deactivate`, {});
+  }
+
+  deleteAdmin(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.base}/admins/${id}/permanent`);
+  }
+
+  // ── Coaches ────────────────────────────────────────────────────────────────
+  getCoaches(): Observable<CoachUser[]> {
+    return this.http.get<CoachUser[]>(`${this.base}/coaches`);
+  }
+
+  getCoachById(id: string): Observable<CoachUser> {
+    return this.http.get<CoachUser>(`${this.base}/coaches/${id}`);
   }
 
   createCoach(dto: CreateUserDto): Observable<void> {
-    return this.http.post<void>(`${this.baseUrl}/coaches`, dto);
+    return this.http.post<void>(`${this.base}/coaches`, dto);
+  }
+
+  updateCoach(id: string, dto: UpdateUserDto): Observable<void> {
+    return this.http.put<void>(`${this.base}/coaches/${id}`, dto);
+  }
+
+  activateCoach(id: string): Observable<void> {
+    return this.http.patch<void>(`${this.base}/coaches/${id}/activate`, {});
+  }
+
+  deactivateCoach(id: string): Observable<void> {
+    return this.http.patch<void>(`${this.base}/coaches/${id}/deactivate`, {});
+  }
+
+  deleteCoach(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.base}/coaches/${id}`);
+  }
+
+  // ── Clients ────────────────────────────────────────────────────────────────
+  getClients(): Observable<ClientListItem[]> {
+    return this.http.get<ClientListItem[]>(`${this.base}/clients`);
+  }
+
+  getClient(id: string): Observable<ClientListItem> {
+    return this.http.get<ClientListItem>(`${this.base}/clients/${id}`);
+  }
+
+  getClientById(id: string): Observable<ClientListItem> {
+    return this.http.get<ClientListItem>(`${this.base}/clients/${id}`);
+  }
+
+  createClient(dto: CreateClientDto): Observable<void> {
+    return this.http.post<void>(`${this.base}/clients`, dto);
+  }
+
+  updateClient(id: string, dto: UpdateUserDto): Observable<void> {
+    return this.http.put<void>(`${this.base}/clients/${id}`, dto);
+  }
+
+  activateClient(id: string): Observable<void> {
+    return this.http.patch<void>(`${this.base}/clients/${id}/activate`, {});
+  }
+
+  deactivateClient(id: string): Observable<void> {
+    return this.http.patch<void>(`${this.base}/clients/${id}/deactivate`, {});
+  }
+
+  deleteClient(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.base}/clients/${id}`);
+  }
+
+  // ── Generic user operations ────────────────────────────────────────────────
+  updateUser(id: string, dto: UpdateUserDto): Observable<void> {
+    return this.http.put<void>(`${this.base}/users/${id}`, dto);
+  }
+
+  activateUser(id: string): Observable<void> {
+    return this.http.patch<void>(`${this.base}/users/${id}/activate`, {});
+  }
+
+  deactivateUser(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.base}/users/${id}`);
+  }
+
+  hardDeleteUser(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.base}/users/${id}/permanent`);
   }
 }

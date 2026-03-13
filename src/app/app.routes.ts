@@ -108,6 +108,14 @@ export const routes: Routes = [
         data: { title: 'Clients' },
       },
       {
+        path: 'owner/clients',
+        canActivate: [roleGuard(PERMISSIONS.OWNER_ADMINS)],
+        loadComponent: () =>
+          import('./features/Client/Pages/client-list.page/client-list.page')
+            .then(c => c.ClientPage),
+        data: { title: 'Clients' },
+      },
+      {
         path: 'clients/new',
         canActivate: [roleGuard(PERMISSIONS.CLIENTS)],
         loadComponent: () =>
@@ -200,6 +208,22 @@ export const routes: Routes = [
           import('./features/OwnerAdmin/Components/admin-management/admin-management.component')
             .then(c => c.AdminManagementComponent),
         data: { title: 'Admin Management' },
+      },
+      {
+        path: 'owner/coach-management',
+        canActivate: [roleGuard(PERMISSIONS.OWNER_ADMINS)],
+        loadComponent: () =>
+          import('./features/OwnerAdmin/Components/coach-management/coach-management.component')
+            .then(c => c.CoachManagementComponent),
+        data: { title: 'Coach Management' },
+      },
+      {
+        path: 'owner/client-management',
+        canActivate: [roleGuard(PERMISSIONS.OWNER_ADMINS)],
+        loadComponent: () =>
+          import('./features/OwnerAdmin/Components/client-management/client-management.component')
+            .then(c => c.ClientManagementComponent),
+        data: { title: 'Client Management' },
       },
     ],
   },

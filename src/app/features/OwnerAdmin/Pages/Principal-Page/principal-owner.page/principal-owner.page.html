@@ -225,6 +225,14 @@
                     {{ gym.phoneNumber }}
                   </span>
                   <div class="flex items-center gap-1">
+                    <!-- Assign Admin -->
+                    <button (click)="openAssignAdmin(gym.id, gym.name); $event.stopPropagation()"
+                            title="Assign Admin"
+                            class="w-6 h-6 rounded-lg flex items-center justify-center
+                                   text-stone-400 hover:bg-[#8B7355]/10 hover:text-[#8B7355]
+                                   transition-colors duration-200">
+                      <lucide-icon [img]="UserCheck" [size]="11" [strokeWidth]="2"></lucide-icon>
+                    </button>
                     <!-- Activate/Deactivate toggle -->
                     @if (gym.isActive) {
                       <button (click)="deactivateGym(gym.id); $event.stopPropagation()"
@@ -585,6 +593,16 @@
         (gymUpdated)="onGymUpdated()"
         (cancelled)="closeEditModal()">
       </app-edit-gym-modal>
+    }
+
+    <!-- ASSIGN ADMIN MODAL -->
+    @if (showAssignModal() && assigningGymId()) {
+      <app-assign-admin-modal
+        [gymId]="assigningGymId()!"
+        [gymName]="assigningGymName()"
+        (assigned)="onAdminAssigned()"
+        (cancelled)="closeAssignAdmin()">
+      </app-assign-admin-modal>
     }
 
   </div>

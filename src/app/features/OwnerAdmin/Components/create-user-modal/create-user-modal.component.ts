@@ -2,8 +2,9 @@ import { Component, Input, output, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
-import { X, User, Mail, Lock } from 'lucide-angular';
-import { UserService, CreateUserDto } from '../../services/user.service';
+import { X, User, Mail, Lock, Building2 } from 'lucide-angular';
+import { UserService, CreateUserDto, CreateClientDto } from '../../services/user.service';
+import { GymListItemResponse } from '../../Models/gym.models';
 
 @Component({
   selector: 'app-create-user-modal',
@@ -13,16 +14,19 @@ import { UserService, CreateUserDto } from '../../services/user.service';
 })
 export class CreateUserModalComponent {
   @Input({ required: true }) userType!: 'client' | 'coach';
+  /** Pass active gyms to show a gym selector when creating a client (OwnerApp only). */
+  @Input() gyms: GymListItemResponse[] = [];
 
   readonly userCreated = output<void>();
   readonly cancelled   = output<void>();
 
   private readonly userService = inject(UserService);
 
-  readonly X    = X;
-  readonly User = User;
-  readonly Mail = Mail;
-  readonly Lock = Lock;
+  readonly X         = X;
+  readonly User      = User;
+  readonly Mail      = Mail;
+  readonly Lock      = Lock;
+  readonly Building2 = Building2;
 
   readonly isSaving = signal(false);
   readonly error    = signal<string | null>(null);
@@ -31,9 +35,14 @@ export class CreateUserModalComponent {
   firstName = '';
   lastName  = '';
   password  = '';
+  gymId     = '';
 
   get title(): string {
     return this.userType === 'client' ? 'New Client' : 'New Coach';
+  }
+
+  get showGymSelect(): boolean {
+    return this.userType === 'client' && this.gyms.length > 0;
   }
 
   submit(): void {
@@ -45,29 +54,37 @@ export class CreateUserModalComponent {
       return;
     }
 
-    const dto: CreateUserDto = {
-      email:     this.email.trim(),
-      firstName: this.firstName.trim(),
-      lastName:  this.lastName.trim(),
-      password:  this.password,
-    };
+    if (this.showGymSelect && !this.gymId) {
+      this.error.set('Please select a gym.');
+      return;
+    }
 
     this.isSaving.set(true);
 
-    const request$ = this.userType === 'client'
-      ? this.userService.createClient(dto)
-      : this.userService.createCoach(dto);
-
-    request$.subscribe({
-      next: () => {
-        this.isSaving.set(false);
-        this.userCreated.emit();
-      },
-      error: (err) => {
-        this.isSaving.set(false);
-        this.error.set(err?.error?.detail ?? `Failed to create ${this.userType}.`);
-      },
-    });
+    if (this.userType === 'client') {
+      const dto: CreateClientDto = {
+        email:     this.email.trim(),
+        firstName: this.firstName.trim(),
+        lastName:  this.lastName.trim(),
+        password:  this.password,
+        ...(this.gymId ? { gymId: this.gymId } : {}),
+      };
+      this.userService.createClient(dto).subscribe({
+        next:  () => { this.isSaving.set(false); this.userCreated.emit(); },
+        error: (err) => { this.isSaving.set(false); this.error.set(err?.error?.detail ?? 'Failed to create client.'); },
+      });
+    } else {
+      const dto: CreateUserDto = {
+        email:     this.email.trim(),
+        firstName: this.firstName.trim(),
+        lastName:  this.lastName.trim(),
+        password:  this.password,
+      };
+      this.userService.createCoach(dto).subscribe({
+        next:  () => { this.isSaving.set(false); this.userCreated.emit(); },
+        error: (err) => { this.isSaving.set(false); this.error.set(err?.error?.detail ?? 'Failed to create coach.'); },
+      });
+    }
   }
 
   cancel(): void {

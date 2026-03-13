@@ -2,11 +2,10 @@
 <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4"
      (click)="cancel()">
 
-  <!-- Panel — stop propagation so clicks inside don't close -->
-  <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6 animate-[fadeUp_.25s_ease_both]"
+  <!-- Panel -->
+  <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 animate-[fadeUp_.25s_ease_both]"
        (click)="$event.stopPropagation()">
 
-    <!-- Top accent -->
     <span class="absolute top-0 left-0 right-0 h-[3px] rounded-t-2xl
                  bg-gradient-to-r from-[#8B7355] to-[#C6A969]"></span>
 
@@ -18,7 +17,7 @@
         </div>
         <div>
           <h2 class="font-syne font-bold text-base text-[#1e3d59]">New Gym</h2>
-          <p class="text-[11px] text-stone-400">Fill in the gym and admin details</p>
+          <p class="text-[11px] text-stone-400">Fill in the gym details</p>
         </div>
       </div>
       <button (click)="cancel()"
@@ -39,21 +38,18 @@
     <!-- Form -->
     <div class="flex flex-col gap-4">
 
-      <!-- Gym info section -->
-      <p class="text-[10px] uppercase tracking-widest text-stone-400 font-semibold">Gym Info</p>
+      <!-- Name -->
+      <div class="flex flex-col gap-1.5">
+        <label class="text-xs font-semibold text-[#1e3d59]">Gym Name</label>
+        <div class="flex items-center gap-2 border border-stone-200 rounded-xl px-3 py-2.5
+                    focus-within:border-[#8B7355] transition-colors duration-200 bg-white">
+          <lucide-icon [img]="Building2" [size]="14" color="#8B7355" [strokeWidth]="2"></lucide-icon>
+          <input [(ngModel)]="name" placeholder="e.g. FitZone Heredia"
+                 class="flex-1 text-sm text-[#1e3d59] outline-none bg-transparent placeholder:text-stone-300"/>
+        </div>
+      </div>
 
       <div class="grid grid-cols-2 gap-3">
-        <!-- Name -->
-        <div class="col-span-2 flex flex-col gap-1.5">
-          <label class="text-xs font-semibold text-[#1e3d59]">Gym Name</label>
-          <div class="flex items-center gap-2 border border-stone-200 rounded-xl px-3 py-2.5
-                      focus-within:border-[#8B7355] transition-colors duration-200 bg-white">
-            <lucide-icon [img]="Building2" [size]="14" color="#8B7355" [strokeWidth]="2"></lucide-icon>
-            <input [(ngModel)]="name" placeholder="e.g. FitZone Heredia"
-                   class="flex-1 text-sm text-[#1e3d59] outline-none bg-transparent placeholder:text-stone-300"/>
-          </div>
-        </div>
-
         <!-- Address -->
         <div class="flex flex-col gap-1.5">
           <label class="text-xs font-semibold text-[#1e3d59]">Address</label>
@@ -75,65 +71,18 @@
                    class="flex-1 text-sm text-[#1e3d59] outline-none bg-transparent placeholder:text-stone-300"/>
           </div>
         </div>
-
-        <!-- Logo URL (optional) -->
-        <div class="col-span-2 flex flex-col gap-1.5">
-          <label class="text-xs font-semibold text-[#1e3d59]">Logo URL <span class="text-stone-400 font-normal">(optional)</span></label>
-          <div class="flex items-center gap-2 border border-stone-200 rounded-xl px-3 py-2.5
-                      focus-within:border-[#8B7355] transition-colors duration-200 bg-white">
-            <lucide-icon [img]="Link" [size]="14" color="#8B7355" [strokeWidth]="2"></lucide-icon>
-            <input [(ngModel)]="logoUrl" placeholder="https://..."
-                   class="flex-1 text-sm text-[#1e3d59] outline-none bg-transparent placeholder:text-stone-300"/>
-          </div>
-        </div>
       </div>
 
-      <!-- Admin section -->
-      <p class="text-[10px] uppercase tracking-widest text-stone-400 font-semibold mt-1">Admin Account</p>
-
-      <div class="grid grid-cols-2 gap-3">
-        <!-- First name -->
-        <div class="flex flex-col gap-1.5">
-          <label class="text-xs font-semibold text-[#1e3d59]">First Name</label>
-          <div class="flex items-center gap-2 border border-stone-200 rounded-xl px-3 py-2.5
-                      focus-within:border-[#8B7355] transition-colors duration-200 bg-white">
-            <lucide-icon [img]="User" [size]="14" color="#8B7355" [strokeWidth]="2"></lucide-icon>
-            <input [(ngModel)]="adminFirstName" placeholder="Carlos"
-                   class="flex-1 text-sm text-[#1e3d59] outline-none bg-transparent placeholder:text-stone-300"/>
-          </div>
-        </div>
-
-        <!-- Last name -->
-        <div class="flex flex-col gap-1.5">
-          <label class="text-xs font-semibold text-[#1e3d59]">Last Name</label>
-          <div class="flex items-center gap-2 border border-stone-200 rounded-xl px-3 py-2.5
-                      focus-within:border-[#8B7355] transition-colors duration-200 bg-white">
-            <lucide-icon [img]="User" [size]="14" color="#8B7355" [strokeWidth]="2"></lucide-icon>
-            <input [(ngModel)]="adminLastName" placeholder="Vega"
-                   class="flex-1 text-sm text-[#1e3d59] outline-none bg-transparent placeholder:text-stone-300"/>
-          </div>
-        </div>
-
-        <!-- Email -->
-        <div class="col-span-2 flex flex-col gap-1.5">
-          <label class="text-xs font-semibold text-[#1e3d59]">Email</label>
-          <div class="flex items-center gap-2 border border-stone-200 rounded-xl px-3 py-2.5
-                      focus-within:border-[#8B7355] transition-colors duration-200 bg-white">
-            <lucide-icon [img]="Mail" [size]="14" color="#8B7355" [strokeWidth]="2"></lucide-icon>
-            <input [(ngModel)]="adminEmail" type="email" placeholder="admin@gym.com"
-                   class="flex-1 text-sm text-[#1e3d59] outline-none bg-transparent placeholder:text-stone-300"/>
-          </div>
-        </div>
-
-        <!-- Password -->
-        <div class="col-span-2 flex flex-col gap-1.5">
-          <label class="text-xs font-semibold text-[#1e3d59]">Password</label>
-          <div class="flex items-center gap-2 border border-stone-200 rounded-xl px-3 py-2.5
-                      focus-within:border-[#8B7355] transition-colors duration-200 bg-white">
-            <lucide-icon [img]="Lock" [size]="14" color="#8B7355" [strokeWidth]="2"></lucide-icon>
-            <input [(ngModel)]="adminPassword" type="password" placeholder="Min. 8 characters"
-                   class="flex-1 text-sm text-[#1e3d59] outline-none bg-transparent placeholder:text-stone-300"/>
-          </div>
+      <!-- Logo URL (optional) -->
+      <div class="flex flex-col gap-1.5">
+        <label class="text-xs font-semibold text-[#1e3d59]">
+          Logo URL <span class="text-stone-400 font-normal">(optional)</span>
+        </label>
+        <div class="flex items-center gap-2 border border-stone-200 rounded-xl px-3 py-2.5
+                    focus-within:border-[#8B7355] transition-colors duration-200 bg-white">
+          <lucide-icon [img]="Link" [size]="14" color="#8B7355" [strokeWidth]="2"></lucide-icon>
+          <input [(ngModel)]="logoUrl" placeholder="https://..."
+                 class="flex-1 text-sm text-[#1e3d59] outline-none bg-transparent placeholder:text-stone-300"/>
         </div>
       </div>
 

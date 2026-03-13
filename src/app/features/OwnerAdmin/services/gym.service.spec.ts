@@ -62,4 +62,28 @@ describe('GymService', () => {
     expect(req.request.method).toBe('DELETE');
     req.flush(null);
   });
+
+  it('assignAdmin() — PATCH /api/gyms/{id}/assign-admin', () => {
+    service.assignAdmin('g1', 'a1').subscribe();
+    const req = http.expectOne(`${base}/g1/assign-admin`);
+    expect(req.request.method).toBe('PATCH');
+    expect(req.request.body).toEqual({ adminId: 'a1' });
+    req.flush(null);
+  });
+
+  it('assignCoach() — PATCH /api/gyms/{id}/assign-coach', () => {
+    service.assignCoach('g1', 'c1').subscribe();
+    const req = http.expectOne(`${base}/g1/assign-coach`);
+    expect(req.request.method).toBe('PATCH');
+    expect(req.request.body).toEqual({ coachId: 'c1' });
+    req.flush(null);
+  });
+
+  it('assignClient() — PATCH /api/gyms/{id}/assign-client', () => {
+    service.assignClient('g1', 'cl1').subscribe();
+    const req = http.expectOne(`${base}/g1/assign-client`);
+    expect(req.request.method).toBe('PATCH');
+    expect(req.request.body).toEqual({ clientId: 'cl1' });
+    req.flush(null);
+  });
 });

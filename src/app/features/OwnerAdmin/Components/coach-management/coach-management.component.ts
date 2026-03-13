@@ -1,50 +1,44 @@
 import { Component, OnInit, signal, computed, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { CommonModule }        from '@angular/common';
+import { FormsModule }         from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
-import { Plus, Users, Building2, Mail, User, Lock, ChevronDown, Pencil, Trash2, UserX, UserCheck } from 'lucide-angular';
-import { UserService, AdminUser, CreateAdminDto } from '../../services/user.service';
-import { GymService } from '../../services/gym.service';
+import { Plus, Users, Mail, User, Lock, Pencil, Trash2, UserX, UserCheck, Building2, ChevronDown } from 'lucide-angular';
+import { UserService, CoachUser, CreateUserDto } from '../../services/user.service';
+import { GymService }          from '../../services/gym.service';
 import { GymListItemResponse } from '../../Models/gym.models';
-import { DialogService } from '../../../../Core/Dialog/dialog.service';
+import { DialogService }       from '../../../../Core/Dialog/dialog.service';
 import { EditUserModalComponent } from '../edit-user-modal/edit-user-modal.component';
 
 @Component({
-  selector: 'app-admin-management',
-  standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule, EditUserModalComponent],
-  templateUrl: './admin-management.component.html',
+  selector:    'app-coach-management',
+  standalone:  true,
+  imports:     [CommonModule, FormsModule, LucideAngularModule, EditUserModalComponent],
+  templateUrl: './coach-management.component.html',
 })
-export class AdminManagementComponent implements OnInit {
+export class CoachManagementComponent implements OnInit {
   private readonly userService   = inject(UserService);
   private readonly gymService    = inject(GymService);
   private readonly dialogService = inject(DialogService);
 
   readonly Plus        = Plus;
   readonly Users       = Users;
-  readonly Building2   = Building2;
   readonly Mail        = Mail;
   readonly User        = User;
   readonly Lock        = Lock;
-  readonly ChevronDown = ChevronDown;
   readonly Pencil      = Pencil;
   readonly Trash2      = Trash2;
   readonly UserX       = UserX;
   readonly UserCheck   = UserCheck;
+  readonly Building2   = Building2;
+  readonly ChevronDown = ChevronDown;
 
-  readonly isLoading = signal(true);
-  readonly admins    = signal<AdminUser[]>([]);
-  readonly gyms      = signal<GymListItemResponse[]>([]);
-  readonly error     = signal<string | null>(null);
-
-  // Create admin form
+  readonly isLoading      = signal(true);
+  readonly coaches        = signal<CoachUser[]>([]);
+  readonly gyms           = signal<GymListItemResponse[]>([]);
+  readonly error          = signal<string | null>(null);
   readonly showCreateForm = signal(false);
   readonly isSaving       = signal(false);
   readonly createError    = signal<string | null>(null);
-
-  // Assign feedback
-  readonly assignError   = signal<string | null>(null);
-  readonly assignSuccess = signal<string | null>(null);
 
   newEmail     = '';
   newFirstName = '';
@@ -52,11 +46,14 @@ export class AdminManagementComponent implements OnInit {
   newPassword  = '';
 
   // Assign gym
-  readonly assigningAdminId = signal<string | null>(null);
+  readonly assigningCoachId = signal<string | null>(null);
   assignGymValue            = '';
+  readonly assignError      = signal<string | null>(null);
+  readonly assignSuccess    = signal<string | null>(null);
 
-  // Edit modal
-  readonly editingAdmin = signal<AdminUser | null>(null);
+  readonly editingCoach = signal<CoachUser | null>(null);
+
+  readonly availableGyms = computed(() => this.gyms().filter(g => g.isActive));
 
   ngOnInit(): void {
     this.loadData();
@@ -71,22 +68,20 @@ export class AdminManagementComponent implements OnInit {
       error: () => {},
     });
 
-    this.userService.getAdmins().subscribe({
-      next: (admins) => {
-        this.admins.set(admins);
+    this.userService.getCoaches().subscribe({
+      next: (coaches) => {
+        this.coaches.set(coaches);
         this.isLoading.set(false);
       },
       error: () => {
-        this.error.set('Failed to load admins.');
+        this.error.set('Failed to load coaches.');
         this.isLoading.set(false);
       },
     });
   }
 
-  readonly availableGyms = computed(() => this.gyms().filter(g => g.isActive));
-
   // ── Create ─────────────────────────────────────────────────────────────────
-  createAdmin(): void {
+  createCoach(): void {
     this.createError.set(null);
 
     if (!this.newEmail.trim() || !this.newFirstName.trim() ||
@@ -95,7 +90,7 @@ export class AdminManagementComponent implements OnInit {
       return;
     }
 
-    const dto: CreateAdminDto = {
+    const dto: CreateUserDto = {
       email:     this.newEmail.trim(),
       firstName: this.newFirstName.trim(),
       lastName:  this.newLastName.trim(),
@@ -103,7 +98,7 @@ export class AdminManagementComponent implements OnInit {
     };
 
     this.isSaving.set(true);
-    this.userService.createAdmin(dto).subscribe({
+    this.userService.createCoach(dto).subscribe({
       next: () => {
         this.isSaving.set(false);
         this.showCreateForm.set(false);
@@ -115,35 +110,37 @@ export class AdminManagementComponent implements OnInit {
       },
       error: (err) => {
         this.isSaving.set(false);
-        this.createError.set(err?.detail ?? 'Failed to create admin.');
+        this.createError.set(err?.detail ?? 'Failed to create coach.');
       },
     });
   }
 
   // ── Assign gym ─────────────────────────────────────────────────────────────
-  startAssign(adminId: string): void {
-    this.assigningAdminId.set(adminId);
-    this.assignGymValue = '';
-  }
-
-  cancelAssign(): void {
-    this.assigningAdminId.set(null);
+  startAssign(coachId: string): void {
+    this.assigningCoachId.set(coachId);
     this.assignGymValue = '';
     this.assignError.set(null);
     this.assignSuccess.set(null);
   }
 
-  confirmAssign(adminId: string): void {
+  cancelAssign(): void {
+    this.assigningCoachId.set(null);
+    this.assignGymValue = '';
+    this.assignError.set(null);
+    this.assignSuccess.set(null);
+  }
+
+  confirmAssign(coachId: string): void {
     const gymId = this.assignGymValue;
     if (!gymId) return;
 
     this.assignError.set(null);
     this.assignSuccess.set(null);
 
-    this.gymService.assignAdmin(gymId, adminId).subscribe({
+    this.gymService.assignCoach(gymId, coachId).subscribe({
       next: () => {
         this.assignSuccess.set('Gym assigned successfully.');
-        this.assigningAdminId.set(null);
+        this.assigningCoachId.set(null);
         this.assignGymValue = '';
         this.loadData();
       },
@@ -154,55 +151,49 @@ export class AdminManagementComponent implements OnInit {
   }
 
   // ── Edit ───────────────────────────────────────────────────────────────────
-  openEdit(admin: AdminUser): void {
-    this.editingAdmin.set(admin);
-  }
-
-  closeEdit(): void {
-    this.editingAdmin.set(null);
-  }
-
-  onAdminUpdated(): void {
-    this.editingAdmin.set(null);
+  openEdit(coach: CoachUser): void  { this.editingCoach.set(coach); }
+  closeEdit(): void                 { this.editingCoach.set(null);  }
+  onCoachUpdated(): void {
+    this.editingCoach.set(null);
     this.loadData();
   }
 
   // ── Deactivate / Activate ──────────────────────────────────────────────────
-  async toggleActive(admin: AdminUser): Promise<void> {
-    const isActive = admin.status === 'Active';
+  async toggleActive(coach: CoachUser): Promise<void> {
+    const isActive = coach.status === 'Active';
     const confirmed = await this.dialogService.confirm({
-      title:       isActive ? 'Deactivate Admin' : 'Activate Admin',
+      title:       isActive ? 'Deactivate Coach' : 'Activate Coach',
       message:     isActive
-        ? `Deactivate ${admin.firstName} ${admin.lastName}? They will lose access.`
-        : `Activate ${admin.firstName} ${admin.lastName}?`,
+        ? `Deactivate ${coach.firstName} ${coach.lastName}? They will lose access.`
+        : `Activate ${coach.firstName} ${coach.lastName}?`,
       confirmText: isActive ? 'Deactivate' : 'Activate',
       cancelText:  'Cancel',
     });
     if (!confirmed) return;
 
     const action$ = isActive
-      ? this.userService.deactivateAdmin(admin.id)
-      : this.userService.activateAdmin(admin.id);
+      ? this.userService.deactivateCoach(coach.id)
+      : this.userService.activateCoach(coach.id);
 
     action$.subscribe({
       next:  () => this.loadData(),
-      error: (err) => console.error('[Admin] Toggle active failed', err),
+      error: (err) => console.error('[Coach] Toggle active failed', err),
     });
   }
 
   // ── Hard delete ────────────────────────────────────────────────────────────
-  async hardDelete(admin: AdminUser): Promise<void> {
+  async hardDelete(coach: CoachUser): Promise<void> {
     const confirmed = await this.dialogService.confirm({
-      title:       'Delete Admin Permanently',
-      message:     `Permanently delete ${admin.firstName} ${admin.lastName}? This cannot be undone.`,
+      title:       'Delete Coach Permanently',
+      message:     `Permanently delete ${coach.firstName} ${coach.lastName}? This cannot be undone.`,
       confirmText: 'Delete',
       cancelText:  'Cancel',
     });
     if (!confirmed) return;
 
-    this.userService.deleteAdmin(admin.id).subscribe({
+    this.userService.deleteCoach(coach.id).subscribe({
       next:  () => this.loadData(),
-      error: (err) => console.error('[Admin] Hard delete failed', err),
+      error: (err) => console.error('[Coach] Hard delete failed', err),
     });
   }
 }

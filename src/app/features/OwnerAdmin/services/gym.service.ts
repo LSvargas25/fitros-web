@@ -40,4 +40,16 @@ export class GymService {
   delete(gymId: string): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${gymId}`);
   }
+
+  assignAdmin(gymId: string, adminId: string): Observable<void> {
+    return this.http.patch<void>(`${this.baseUrl}/${gymId}/assign-admin`, { adminId });
+  }
+
+  assignCoach(gymId: string, coachId: string): Observable<void> {
+    return this.http.patch<void>(`${this.baseUrl}/${gymId}/assign-coach`, { coachId });
+  }
+
+  assignClient(gymId: string, clientId: string): Observable<void> {
+    return this.http.patch<void>(`${this.baseUrl}/${gymId}/assign-client`, { clientId });
+  }
 }

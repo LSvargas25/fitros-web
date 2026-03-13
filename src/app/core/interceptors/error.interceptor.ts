@@ -18,19 +18,25 @@ export class ErrorInterceptor implements HttpInterceptor {
     return next.handle(req).pipe(
       catchError((error: HttpErrorResponse) => {
 
-        let apiError: ApiError = {
-          status: error.status
-        };
+        let apiError: ApiError = { status: error.status };
 
         if (error.error) {
-          if (typeof error.error === 'string') {
-            try {
-              apiError = JSON.parse(error.error);
-            } catch {
-              apiError.detail = error.error;
+          const body = typeof error.error === 'string'
+            ? (() => { try { return JSON.parse(error.error); } catch { return null; } })()
+            : error.error;
+
+          if (body) {
+            apiError = { ...body, status: body.status ?? error.status };
+
+            // ValidationException: concatenate field errors into detail
+            if (body.errors && typeof body.errors === 'object') {
+              const messages = Object.values(body.errors as Record<string, string[]>)
+                .flat()
+                .join(' ');
+              apiError.detail = messages || body.detail;
             }
-          } else {
-            apiError = error.error as ApiError;
+          } else if (typeof error.error === 'string') {
+            apiError.detail = error.error;
           }
         }
 

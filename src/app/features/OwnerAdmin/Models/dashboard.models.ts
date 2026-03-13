@@ -1,5 +1,6 @@
 export interface DashboardStatsResponse {
   totalGyms: number;
+  totalAdmins: number;
   totalClients: number;
   totalCoaches: number;
   totalRoutines: number;
