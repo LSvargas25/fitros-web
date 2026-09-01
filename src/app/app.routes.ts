@@ -128,14 +128,6 @@ export const routes: Routes = [
         data: { title: 'Clients' },
       },
       {
-        path: 'owner/clients',
-        canActivate: [roleGuard(PERMISSIONS.OWNER_ADMINS)],
-        loadComponent: () =>
-          import('./features/Client/Pages/client-list.page/client-list.page')
-            .then(c => c.ClientPage),
-        data: { title: 'Clients' },
-      },
-      {
         path: 'clients/new',
         canActivate: [roleGuard(PERMISSIONS.CLIENTS)],
         loadComponent: () =>
