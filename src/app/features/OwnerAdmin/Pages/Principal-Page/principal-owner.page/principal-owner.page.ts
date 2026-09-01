@@ -1,13 +1,13 @@
 import { Component, computed, signal, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 import { DashboardService } from '../../../services/dashboard.service';
 import { DashboardStatsResponse, GymSummaryDto } from '../../../Models/dashboard.models';
 import {
   Home, Users, UserRound, TrendingUp, CreditCard,
-  Building2, LayoutGrid, Clock, Receipt,
-  UserCircle, Phone, Heart, Star, Activity,
-  MessageSquare, Briefcase, FileBarChart,
+  Building2,
+  UserCircle, Phone,
   UsersRound, Settings, BarChart3, Wallet,
   Plus, TrendingDown, Pencil, Trash2, UserCheck,
 } from 'lucide-angular';
@@ -22,31 +22,11 @@ import { DialogService }              from '../../../../../core/Dialog/dialog.se
 
 
 
-export interface PlanRow {
-  readonly name:     string;
-  readonly widthPct: number;
-  readonly color:    string;
-  readonly count:    string;
-}
-
-export interface ActivityItem {
-  readonly dot:    'coffee' | 'navy' | 'gold' | 'muted';
-  readonly text:   string;
-  readonly strong: string;
-  readonly suffix: string;
-  readonly time:   string;
-}
-
 export interface ActionItem {
   readonly label: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   readonly icon: any;
-}
-
-export interface RevenueBar {
-  readonly month:  string;
-  readonly pct:    number;
-  readonly active: boolean;
+  readonly route?: string;
 }
 
 export interface SignupAvatar {
@@ -59,7 +39,7 @@ export interface SignupAvatar {
 @Component({
   selector:    'app-principal-owner-page',
   standalone:  true,
-  imports:     [CommonModule, LucideAngularModule, CreateGymModalComponent, EditGymModalComponent, AssignAdminModalComponent],
+  imports:     [CommonModule, RouterLink, LucideAngularModule, CreateGymModalComponent, EditGymModalComponent, AssignAdminModalComponent],
   templateUrl: './principal-owner.page.html',
 })
 export class PrincipalOwnerPage implements OnInit {
@@ -76,17 +56,8 @@ export class PrincipalOwnerPage implements OnInit {
   readonly TrendingDown  = TrendingDown;
   readonly CreditCard    = CreditCard;
   readonly Building2     = Building2;
-  readonly LayoutGrid    = LayoutGrid;
-  readonly Clock         = Clock;
-  readonly Receipt       = Receipt;
   readonly UserCircle    = UserCircle;
   readonly Phone         = Phone;
-  readonly Heart         = Heart;
-  readonly Star          = Star;
-  readonly Activity      = Activity;
-  readonly MessageSquare = MessageSquare;
-  readonly Briefcase     = Briefcase;
-  readonly FileBarChart  = FileBarChart;
   readonly UsersRound    = UsersRound;
   readonly Settings      = Settings;
   readonly BarChart3     = BarChart3;
@@ -163,38 +134,14 @@ export class PrincipalOwnerPage implements OnInit {
   );
 
   // ── Static data ───────────────────────────────────────────────────────────
-  readonly plans: readonly PlanRow[] = [
-    { name: 'Enterprise', widthPct: 35, color: '#1e3d59', count: '8 gyms'  },
-    { name: 'Pro',        widthPct: 54, color: '#8B7355', count: '13 gyms' },
-    { name: 'Starter',    widthPct: 12, color: '#C6A969', count: '3 gyms'  },
-    { name: 'Trial',      widthPct: 8,  color: '#d6d3d1', count: '2 gyms'  },
-  ] as const;
-
-  readonly activities: readonly ActivityItem[] = [
-    { dot: 'coffee', text: 'New gym',    strong: 'IronFit Liberia', suffix: 'signed up',               time: '2 min ago'  },
-    { dot: 'navy',   text: 'Coach',      strong: 'Ana Mora',        suffix: 'assigned to 12 clients',  time: '15 min ago' },
-    { dot: 'gold',   text: '',           strong: 'PowerHouse SJ',   suffix: 'trial expires in 3 days', time: '1 hr ago'   },
-    { dot: 'navy',   text: 'Routine at', strong: "Gold's CR",       suffix: 'published',               time: '3 hrs ago'  },
-    { dot: 'coffee', text: '',           strong: 'Xcellence Gym',   suffix: 'subscription cancelled',  time: 'Yesterday'  },
-    { dot: 'gold',   text: '',           strong: 'EliteBody',       suffix: 'upgraded to Enterprise',  time: 'Yesterday'  },
-  ] as const;
-
+  // System Settings and Billing Overview have no page behind them yet — clicking
+  // does nothing until those areas exist. Manage Users routes to client management
+  // since that's the largest user group owners handle from here.
   readonly actions: readonly ActionItem[] = [
-    { label: 'Manage Users',     icon: UsersRound },
-    { label: 'System Settings',  icon: Settings   },
-    { label: 'View Reports',     icon: BarChart3  },
-    { label: 'Billing Overview', icon: Wallet     },
-  ] as const;
-
-  readonly revenueBars: readonly RevenueBar[] = [
-    { month: 'Aug', pct: 55,  active: false },
-    { month: 'Sep', pct: 62,  active: false },
-    { month: 'Oct', pct: 48,  active: false },
-    { month: 'Nov', pct: 71,  active: false },
-    { month: 'Dec', pct: 66,  active: false },
-    { month: 'Jan', pct: 79,  active: false },
-    { month: 'Feb', pct: 84,  active: false },
-    { month: 'Mar', pct: 100, active: true  },
+    { label: 'Manage Users',     icon: UsersRound, route: '/owner/client-management' },
+    { label: 'System Settings',  icon: Settings    },
+    { label: 'View Reports',     icon: BarChart3,  route: '/manage/progress/reports' },
+    { label: 'Billing Overview', icon: Wallet      },
   ] as const;
 
   // ── Lifecycle ─────────────────────────────────────────────────────────────
@@ -305,29 +252,17 @@ export class PrincipalOwnerPage implements OnInit {
     return colors[name.charCodeAt(0) % colors.length];
   }
 
-  dotColor(dot: ActivityItem['dot']): string {
-    const map: Record<ActivityItem['dot'], string> = {
-      coffee: 'bg-[#8B7355]',
-      navy:   'bg-[#1e3d59]',
-      gold:   'bg-[#C6A969]',
-      muted:  'bg-stone-300',
-    };
-    return map[dot];
-  }
-
-  badgeClasses(status: 'active' | 'inactive' | 'trial'): string {
-    const map: Record<'active' | 'inactive' | 'trial', string> = {
+  badgeClasses(status: 'active' | 'inactive'): string {
+    const map: Record<'active' | 'inactive', string> = {
       active:   'bg-[#8B7355]/10 text-[#8B7355]',
-      trial:    'bg-[#C6A969]/20 text-[#a87800]',
       inactive: 'bg-stone-100 text-stone-400',
     };
     return map[status];
   }
 
-  accentBorder(status: 'active' | 'inactive' | 'trial'): string {
-    const map: Record<'active' | 'inactive' | 'trial', string> = {
+  accentBorder(status: 'active' | 'inactive'): string {
+    const map: Record<'active' | 'inactive', string> = {
       active:   'bg-gradient-to-r from-[#8B7355] to-[#C6A969]',
-      trial:    'bg-[#C6A969]',
       inactive: 'bg-stone-300',
     };
     return map[status];
