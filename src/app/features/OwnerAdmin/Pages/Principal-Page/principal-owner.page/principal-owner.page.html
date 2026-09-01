@@ -1,0 +1,609 @@
+<div class="h-full w-full overflow-y-auto scrollbar-hide">
+  <div class="h-full overflow-y-auto scrollbar-hide bg-[#F5EFE6] font-dm text-[#1e3d59] px-8 py-7 max-w-[1600px] mx-auto">
+
+    <!-- LOADING STATE -->
+    @if (isLoading()) {
+      <div class="flex items-center justify-center h-64">
+        <div class="w-8 h-8 border-4 border-[#8B7355] border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    }
+
+    <!-- ERROR STATE -->
+    @if (error()) {
+      <div class="flex items-center justify-center h-64">
+        <p class="text-red-500 text-sm" role="alert">{{ error() }}</p>
+      </div>
+    }
+
+    <!-- MAIN CONTENT -->
+    @if (!isLoading() && !error()) {
+
+      <!-- HEADER -->
+      <div class="flex items-center justify-between flex-wrap gap-4 mb-8 animate-[fadeUp_.7s_ease_both]">
+        <div>
+          <h1 class="font-syne text-[2rem] font-extrabold tracking-tight text-[#1e3d59] leading-none">
+            Global <span class="text-[#8B7355]">Administration</span>
+          </h1>
+          <p class="text-xs text-stone-400 font-dm mt-1.5 tracking-wide">
+            FitRos SaaS · System Overview · {{ currentMonthYear() }}
+          </p>
+        </div>
+
+        <div class="flex items-center gap-3 flex-wrap">
+          <!-- KPI pills -->
+          <div class="flex items-center gap-2.5 bg-white border border-stone-200 rounded-full px-4 py-2 shadow-sm
+                      transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-md cursor-default">
+            <span class="w-2 h-2 rounded-full bg-[#8B7355] animate-pulse"></span>
+            <span class="font-syne font-bold text-[#1e3d59] text-sm">{{ totalGyms() }}</span>
+            <span class="text-[10px] uppercase tracking-widest text-stone-400">Gyms</span>
+          </div>
+          <div class="flex items-center gap-2.5 bg-white border border-stone-200 rounded-full px-4 py-2 shadow-sm
+                      transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-md cursor-default">
+            <span class="w-2 h-2 rounded-full bg-[#C6A969] animate-pulse"></span>
+            <span class="font-syne font-bold text-[#1e3d59] text-sm">{{ totalClients() }}</span>
+            <span class="text-[10px] uppercase tracking-widest text-stone-400">Clients</span>
+          </div>
+          <div class="flex items-center gap-2.5 bg-white border border-stone-200 rounded-full px-4 py-2 shadow-sm
+                      transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-md cursor-default">
+            <span class="w-2 h-2 rounded-full bg-[#1e3d59] animate-pulse"></span>
+            <span class="font-syne font-bold text-[#1e3d59] text-sm">{{ totalCoaches() }}</span>
+            <span class="text-[10px] uppercase tracking-widest text-stone-400">Coaches</span>
+          </div>
+
+          <!-- New Gym CTA -->
+          <button (click)="openCreateModal()"
+                  class="flex items-center gap-1.5 bg-[#8B7355] hover:bg-[#7a6347] text-white text-sm font-semibold
+                         px-4 py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 ease-out
+                         hover:-translate-y-0.5 active:translate-y-0 overflow-hidden relative group">
+            <lucide-icon [img]="Plus" [size]="14" [strokeWidth]="2.5" class="relative z-10"></lucide-icon>
+            <span class="relative z-10">New Gym</span>
+            <span class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent
+                         translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500"></span>
+          </button>
+        </div>
+      </div>
+
+      <!-- SUMMARY STRIP — 5 KPI tiles -->
+      <div class="grid grid-cols-5 gap-3 mb-5 max-xl:grid-cols-3 max-md:grid-cols-2">
+
+        <!-- Active Gyms -->
+        <div class="group relative bg-white border border-stone-200 rounded-2xl px-4 py-4 shadow-sm
+                    flex items-center gap-3 overflow-hidden cursor-default
+                    transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-xl">
+          <span class="absolute bottom-0 left-0 h-[3px] w-0 group-hover:w-full
+                       bg-[#8B7355] transition-all duration-300 ease-out rounded-full"></span>
+          <div class="w-10 h-10 rounded-xl bg-[#8B7355]/10 flex items-center justify-center flex-shrink-0
+                      transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-110">
+            <lucide-icon [img]="Home" [size]="20" color="#8B7355" [strokeWidth]="2"></lucide-icon>
+          </div>
+          <div>
+            <p class="font-syne font-extrabold text-2xl text-[#1e3d59] leading-none">{{ totalGyms() }}</p>
+            <p class="text-[11px] text-stone-400 mt-0.5">Active Gyms</p>
+          </div>
+        </div>
+
+        <!-- Total Clients -->
+        <div class="group relative bg-white border border-stone-200 rounded-2xl px-4 py-4 shadow-sm
+                    flex items-center gap-3 overflow-hidden cursor-default
+                    transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-xl">
+          <span class="absolute bottom-0 left-0 h-[3px] w-0 group-hover:w-full
+                       bg-[#1e3d59] transition-all duration-300 ease-out rounded-full"></span>
+          <div class="w-10 h-10 rounded-xl bg-[#1e3d59]/8 flex items-center justify-center flex-shrink-0
+                      transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-110">
+            <lucide-icon [img]="Users" [size]="20" color="#1e3d59" [strokeWidth]="2"></lucide-icon>
+          </div>
+          <div>
+            <p class="font-syne font-extrabold text-2xl text-[#1e3d59] leading-none">{{ totalClients() }}</p>
+            <p class="text-[11px] text-stone-400 mt-0.5">Total Clients</p>
+          </div>
+        </div>
+
+        <!-- Coaches -->
+        <div class="group relative bg-white border border-stone-200 rounded-2xl px-4 py-4 shadow-sm
+                    flex items-center gap-3 overflow-hidden cursor-default
+                    transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-xl">
+          <span class="absolute bottom-0 left-0 h-[3px] w-0 group-hover:w-full
+                       bg-[#C6A969] transition-all duration-300 ease-out rounded-full"></span>
+          <div class="w-10 h-10 rounded-xl bg-[#C6A969]/15 flex items-center justify-center flex-shrink-0
+                      transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-110">
+            <lucide-icon [img]="UserRound" [size]="20" color="#C6A969" [strokeWidth]="2"></lucide-icon>
+          </div>
+          <div>
+            <p class="font-syne font-extrabold text-2xl text-[#1e3d59] leading-none">{{ totalCoaches() }}</p>
+            <p class="text-[11px] text-stone-400 mt-0.5">Coaches</p>
+          </div>
+        </div>
+
+        <!-- Routines -->
+        <div class="group relative bg-white border border-stone-200 rounded-2xl px-4 py-4 shadow-sm
+                    flex items-center gap-3 overflow-hidden cursor-default
+                    transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-xl">
+          <span class="absolute bottom-0 left-0 h-[3px] w-0 group-hover:w-full
+                       bg-emerald-500 transition-all duration-300 ease-out rounded-full"></span>
+          <div class="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center flex-shrink-0
+                      transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-110">
+            <lucide-icon [img]="TrendingUp" [size]="20" color="#16a34a" [strokeWidth]="2"></lucide-icon>
+          </div>
+          <div>
+            <p class="font-syne font-extrabold text-2xl text-[#1e3d59] leading-none">{{ totalRoutines() }}</p>
+            <p class="text-[11px] text-stone-400 mt-0.5">Routines</p>
+          </div>
+        </div>
+
+        <!-- Total People -->
+        <div class="group relative bg-white border border-stone-200 rounded-2xl px-4 py-4 shadow-sm
+                    flex items-center gap-3 overflow-hidden cursor-default
+                    transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-xl">
+          <span class="absolute bottom-0 left-0 h-[3px] w-0 group-hover:w-full
+                       bg-stone-300 transition-all duration-300 ease-out rounded-full"></span>
+          <div class="w-10 h-10 rounded-xl bg-stone-100 flex items-center justify-center flex-shrink-0
+                      transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-110">
+            <lucide-icon [img]="CreditCard" [size]="20" color="#78716c" [strokeWidth]="2"></lucide-icon>
+          </div>
+          <div>
+            <p class="font-syne font-extrabold text-2xl text-[#1e3d59] leading-none">{{ totalPeople() }}</p>
+            <p class="text-[11px] text-stone-400 mt-0.5">Total People</p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- MAIN GRID 3-col -->
+      <div class="grid grid-cols-3 gap-5 max-xl:grid-cols-2 max-md:grid-cols-1">
+
+        <!-- REGISTERED GYMS (col-span-2) -->
+        <div class="col-span-2 max-md:col-span-1 bg-white border border-stone-200 rounded-2xl p-5 shadow-sm
+                    relative overflow-hidden transition-shadow duration-300 hover:shadow-lg">
+          <span class="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#8B7355] to-[#C6A969]"></span>
+
+          <div class="flex items-center justify-between mb-5">
+            <div class="flex items-center gap-2.5">
+              <div class="w-9 h-9 rounded-xl bg-[#8B7355]/10 flex items-center justify-center
+                          transition-transform duration-300 hover:-rotate-6">
+                <lucide-icon [img]="Building2" [size]="18" color="#8B7355" [strokeWidth]="2"></lucide-icon>
+              </div>
+              <div>
+                <h2 class="font-syne font-bold text-sm text-[#1e3d59]">Registered Gyms</h2>
+                <p class="text-[11px] text-stone-400">All institutions overview</p>
+              </div>
+            </div>
+            <button class="text-xs text-stone-400 border border-stone-200 rounded-lg px-3 py-1.5
+                           hover:text-[#1e3d59] hover:border-stone-300 transition-all duration-200">
+              View All
+            </button>
+          </div>
+
+          <div class="grid grid-cols-3 gap-3 max-lg:grid-cols-2">
+
+            <!-- Gym cards from API -->
+            @for (gym of gyms(); track gym.id) {
+              <div class="group relative bg-[#F5EFE6] border border-stone-200 rounded-xl p-4 cursor-pointer overflow-hidden
+                          transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-md hover:border-stone-300"
+                   [class.opacity-70]="!gym.isActive">
+                <span [class]="accentBorder(getStatus(gym))"
+                      class="absolute top-0 left-0 right-0 h-[3px] scale-x-0 group-hover:scale-x-100
+                             origin-left transition-transform duration-300"></span>
+                <span class="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent
+                             translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-600 pointer-events-none"></span>
+
+                <div class="flex items-center justify-between mb-3">
+                  <div class="w-9 h-9 rounded-xl flex items-center justify-center
+                              font-syne font-extrabold text-sm text-white
+                              transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3"
+                       [style.background-color]="getAvatarColor(gym.name)">
+                    {{ getInitial(gym.name) }}
+                  </div>
+                  <span class="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full"
+                        [class]="badgeClasses(getStatus(gym))">
+                    {{ gym.isActive ? 'Active' : 'Inactive' }}
+                  </span>
+                </div>
+
+                <p class="font-syne font-bold text-sm text-[#1e3d59] mb-3">{{ gym.name }}</p>
+
+                <div class="grid grid-cols-3 gap-1.5 mb-3">
+                  <div class="bg-white rounded-lg py-2 text-center border border-stone-100
+                              transition-all duration-200 hover:bg-[#8B7355]/8 hover:border-[#8B7355]/20">
+                    <p class="font-syne font-extrabold text-sm text-[#1e3d59] leading-none">{{ gym.clientCount }}</p>
+                    <p class="text-[9px] uppercase tracking-wide text-stone-400 mt-0.5">Clients</p>
+                  </div>
+                  <div class="bg-white rounded-lg py-2 text-center border border-stone-100
+                              transition-all duration-200 hover:bg-[#8B7355]/8 hover:border-[#8B7355]/20">
+                    <p class="font-syne font-extrabold text-sm text-[#1e3d59] leading-none">{{ gym.coachCount }}</p>
+                    <p class="text-[9px] uppercase tracking-wide text-stone-400 mt-0.5">Coaches</p>
+                  </div>
+                  <div class="bg-white rounded-lg py-2 text-center border border-stone-100
+                              transition-all duration-200 hover:bg-[#8B7355]/8 hover:border-[#8B7355]/20">
+                    <p class="font-syne font-extrabold text-sm text-[#1e3d59] leading-none">{{ gym.adminCount }}</p>
+                    <p class="text-[9px] uppercase tracking-wide text-stone-400 mt-0.5">Admins</p>
+                  </div>
+                </div>
+
+                <div class="flex items-center justify-between mt-1">
+                  <span class="flex items-center gap-1 text-[11px] text-stone-400">
+                    <lucide-icon [img]="Phone" [size]="10" [strokeWidth]="2"></lucide-icon>
+                    {{ gym.phoneNumber }}
+                  </span>
+                  <div class="flex items-center gap-1">
+                    <!-- Assign Admin -->
+                    <button (click)="openAssignAdmin(gym.id, gym.name); $event.stopPropagation()"
+                            title="Assign Admin"
+                            class="w-6 h-6 rounded-lg flex items-center justify-center
+                                   text-stone-400 hover:bg-[#8B7355]/10 hover:text-[#8B7355]
+                                   transition-colors duration-200">
+                      <lucide-icon [img]="UserCheck" [size]="11" [strokeWidth]="2"></lucide-icon>
+                    </button>
+                    <!-- Activate/Deactivate toggle -->
+                    @if (gym.isActive) {
+                      <button (click)="deactivateGym(gym.id); $event.stopPropagation()"
+                              title="Deactivate"
+                              class="w-6 h-6 rounded-lg flex items-center justify-center
+                                     text-stone-400 hover:bg-orange-50 hover:text-orange-500
+                                     transition-colors duration-200">
+                        <lucide-icon [img]="TrendingDown" [size]="11" [strokeWidth]="2"></lucide-icon>
+                      </button>
+                    } @else {
+                      <button (click)="activateGym(gym.id); $event.stopPropagation()"
+                              title="Activate"
+                              class="w-6 h-6 rounded-lg flex items-center justify-center
+                                     text-stone-400 hover:bg-green-50 hover:text-green-500
+                                     transition-colors duration-200">
+                        <lucide-icon [img]="TrendingUp" [size]="11" [strokeWidth]="2"></lucide-icon>
+                      </button>
+                    }
+                    <!-- Edit -->
+                    <button (click)="editGym(gym.id); $event.stopPropagation()"
+                            title="Edit"
+                            class="w-6 h-6 rounded-lg flex items-center justify-center
+                                   text-stone-400 hover:bg-[#8B7355]/10 hover:text-[#8B7355]
+                                   transition-colors duration-200">
+                      <lucide-icon [img]="Pencil" [size]="11" [strokeWidth]="2"></lucide-icon>
+                    </button>
+                    <!-- Delete -->
+                    <button (click)="deleteGym(gym.id, gym.name); $event.stopPropagation()"
+                            title="Delete"
+                            class="w-6 h-6 rounded-lg flex items-center justify-center
+                                   text-stone-400 hover:bg-red-50 hover:text-red-500
+                                   transition-colors duration-200">
+                      <lucide-icon [img]="Trash2" [size]="11" [strokeWidth]="2"></lucide-icon>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            }
+
+            <!-- Add New Gym card -->
+            <div (click)="openCreateModal()"
+                 class="group flex flex-col items-center justify-center gap-3 min-h-[180px]
+                        border-2 border-dashed border-stone-200 rounded-xl cursor-pointer
+                        transition-all duration-300 hover:border-[#8B7355] hover:bg-[#8B7355]/5">
+              <div class="w-10 h-10 rounded-full bg-[#8B7355]/10 flex items-center justify-center
+                          transition-transform duration-300 group-hover:rotate-90 group-hover:scale-110">
+                <lucide-icon [img]="Plus" [size]="18" color="#8B7355" [strokeWidth]="2.5"></lucide-icon>
+              </div>
+              <span class="text-xs font-semibold text-[#8B7355]">Add New Gym</span>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- PEOPLE -->
+        <div class="bg-white border border-stone-200 rounded-2xl p-5 shadow-sm relative overflow-hidden
+                    transition-shadow duration-300 hover:shadow-lg">
+          <span class="absolute top-0 left-0 right-0 h-[3px] bg-[#1e3d59]"></span>
+
+          <div class="flex items-center gap-2.5 mb-5">
+            <div class="w-9 h-9 rounded-xl bg-[#1e3d59]/8 flex items-center justify-center">
+              <lucide-icon [img]="Users" [size]="18" color="#1e3d59" [strokeWidth]="2"></lucide-icon>
+            </div>
+            <div>
+              <h2 class="font-syne font-bold text-sm text-[#1e3d59]">People</h2>
+              <p class="text-[11px] text-stone-400">Across all gyms</p>
+            </div>
+          </div>
+
+          <!-- Donut rings -->
+          <div class="flex justify-around mb-5">
+            <!-- Clients -->
+            <div class="flex flex-col items-center gap-2">
+              <div class="relative w-[68px] h-[68px]">
+                <svg viewBox="0 0 36 36" class="w-full h-full -rotate-90">
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#ede8dc" stroke-width="3"/>
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#8B7355" stroke-width="3"
+                          [attr.stroke-dasharray]="clientsPct() + ' ' + (100 - clientsPct())"
+                          stroke-dashoffset="25" class="transition-all duration-1000"/>
+                </svg>
+                <span class="absolute inset-0 flex items-center justify-center font-syne font-extrabold text-[11px] text-[#1e3d59]">
+                  {{ clientsPct() }}%
+                </span>
+              </div>
+              <p class="font-syne font-extrabold text-base text-[#1e3d59] leading-none">{{ totalClients() }}</p>
+              <p class="text-[10px] uppercase tracking-widest text-stone-400">Clients</p>
+            </div>
+
+            <!-- Coaches -->
+            <div class="flex flex-col items-center gap-2">
+              <div class="relative w-[68px] h-[68px]">
+                <svg viewBox="0 0 36 36" class="w-full h-full -rotate-90">
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#ede8dc" stroke-width="3"/>
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#1e3d59" stroke-width="3"
+                          [attr.stroke-dasharray]="coachesPct() + ' ' + (100 - coachesPct())"
+                          stroke-dashoffset="25"/>
+                </svg>
+                <span class="absolute inset-0 flex items-center justify-center font-syne font-extrabold text-[11px] text-[#1e3d59]">
+                  {{ coachesPct() }}%
+                </span>
+              </div>
+              <p class="font-syne font-extrabold text-base text-[#1e3d59] leading-none">{{ totalCoaches() }}</p>
+              <p class="text-[10px] uppercase tracking-widest text-stone-400">Coaches</p>
+            </div>
+
+            <!-- Admins -->
+            <div class="flex flex-col items-center gap-2">
+              <div class="relative w-[68px] h-[68px]">
+                <svg viewBox="0 0 36 36" class="w-full h-full -rotate-90">
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#ede8dc" stroke-width="3"/>
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#C6A969" stroke-width="3"
+                          [attr.stroke-dasharray]="adminsPct() + ' ' + (100 - adminsPct())"
+                          stroke-dashoffset="25"/>
+                </svg>
+                <span class="absolute inset-0 flex items-center justify-center font-syne font-extrabold text-[11px] text-[#1e3d59]">
+                  {{ adminsPct() }}%
+                </span>
+              </div>
+              <p class="font-syne font-extrabold text-base text-[#1e3d59] leading-none">{{ totalAdmins() }}</p>
+              <p class="text-[10px] uppercase tracking-widest text-stone-400">Admins</p>
+            </div>
+          </div>
+
+          <!-- Recent signups -->
+          <div class="border-t border-stone-100 pt-4">
+            <p class="text-[10px] uppercase tracking-widest text-stone-400 mb-2.5">Recent Signups</p>
+            <div class="flex items-center">
+              @for (signup of recentSignups(); track signup.initials; let i = $index) {
+                <div class="w-7 h-7 rounded-full border-2 border-white flex items-center justify-center
+                            text-[9px] font-bold text-white -ml-2 first:ml-0
+                            transition-transform duration-200 hover:-translate-y-1 hover:scale-110 cursor-pointer"
+                     [style.background-color]="signup.color"
+                     [style.z-index]="10 - i">
+                  {{ signup.initials }}
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- REVENUE (col-span-2) -->
+        <div class="col-span-2 max-md:col-span-1 bg-white border border-stone-200 rounded-2xl p-5 shadow-sm
+                    relative overflow-hidden transition-shadow duration-300 hover:shadow-lg">
+          <span class="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#C6A969] to-[#8B7355]"></span>
+
+          <div class="flex items-center justify-between mb-5">
+            <div class="flex items-center gap-2.5">
+              <div class="w-9 h-9 rounded-xl bg-[#C6A969]/15 flex items-center justify-center">
+                <lucide-icon [img]="TrendingUp" [size]="18" color="#C6A969" [strokeWidth]="2"></lucide-icon>
+              </div>
+              <div>
+                <h2 class="font-syne font-bold text-sm text-[#1e3d59]">Revenue</h2>
+                <p class="text-[11px] text-stone-400">Monthly Recurring Revenue</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex gap-4 h-36">
+            <div class="flex-1 flex items-end gap-2">
+              @for (bar of revenueBars; track bar.month) {
+                <div class="flex-1 flex flex-col items-center gap-1.5 h-full justify-end">
+                  <div class="w-full rounded-t-md overflow-hidden"
+                       [style.height]="bar.pct + '%'"
+                       [class.shadow-md]="bar.active">
+                    <div class="w-full h-full transition-colors duration-200"
+                         [class]="bar.active ? 'bg-gradient-to-t from-[#8B7355] to-[#C6A969]' : 'bg-stone-100 hover:bg-stone-200'">
+                    </div>
+                  </div>
+                  <span class="text-[10px]"
+                        [class]="bar.active ? 'font-bold text-[#8B7355]' : 'text-stone-400'">
+                    {{ bar.month }}
+                  </span>
+                </div>
+              }
+            </div>
+            <div class="flex flex-col justify-between text-[10px] text-stone-300 text-right pb-[22px]">
+              <span>$48.2k</span><span>$36k</span><span>$24k</span><span>$12k</span><span>$0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- SUBSCRIPTIONS -->
+        <div class="bg-white border border-stone-200 rounded-2xl p-5 shadow-sm relative overflow-hidden
+                    transition-shadow duration-300 hover:shadow-lg">
+          <span class="absolute top-0 left-0 right-0 h-[3px] bg-[#8B7355]"></span>
+
+          <div class="flex items-center gap-2.5 mb-5">
+            <div class="w-9 h-9 rounded-xl bg-[#8B7355]/10 flex items-center justify-center">
+              <lucide-icon [img]="Receipt" [size]="18" color="#8B7355" [strokeWidth]="2"></lucide-icon>
+            </div>
+            <div>
+              <h2 class="font-syne font-bold text-sm text-[#1e3d59]">Subscriptions</h2>
+              <p class="text-[11px] text-stone-400">Plan distribution</p>
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-3.5 mb-4">
+            @for (plan of plans; track plan.name) {
+              <div class="flex items-center gap-3">
+                <span class="text-xs text-stone-500 min-w-[68px] font-medium">{{ plan.name }}</span>
+                <div class="flex-1 h-1.5 bg-stone-100 rounded-full overflow-hidden">
+                  <div class="h-full rounded-full transition-all duration-700"
+                       [style.width]="plan.widthPct + '%'"
+                       [style.background-color]="plan.color"></div>
+                </div>
+                <span class="text-xs font-semibold text-[#1e3d59] min-w-[44px] text-right">{{ plan.count }}</span>
+              </div>
+            }
+          </div>
+
+          <div class="flex items-center justify-between pt-3.5 border-t border-stone-100">
+            <span class="text-xs text-stone-400">Total ARR</span>
+            <span class="font-syne font-extrabold text-base text-[#1e3d59]">$578,400</span>
+          </div>
+        </div>
+
+        <!-- SYSTEM MODULES -->
+        <div class="bg-white border border-stone-200 rounded-2xl p-5 shadow-sm relative overflow-hidden
+                    transition-shadow duration-300 hover:shadow-lg">
+          <span class="absolute top-0 left-0 right-0 h-[3px] bg-[#C6A969]"></span>
+
+          <div class="flex items-center gap-2.5 mb-5">
+            <div class="w-9 h-9 rounded-xl bg-[#C6A969]/15 flex items-center justify-center">
+              <lucide-icon [img]="LayoutGrid" [size]="18" color="#C6A969" [strokeWidth]="2"></lucide-icon>
+            </div>
+            <div>
+              <h2 class="font-syne font-bold text-sm text-[#1e3d59]">System Modules</h2>
+              <p class="text-[11px] text-stone-400">Platform adoption</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div class="group flex flex-col items-center gap-1.5 p-3 rounded-xl border border-[#8B7355]/20 bg-[#F5EFE6]
+                        cursor-pointer transition-all duration-200 hover:bg-[#8B7355]/8 hover:border-[#8B7355]/40 hover:shadow-sm">
+              <lucide-icon [img]="Heart" [size]="18" color="#8B7355" [strokeWidth]="2"
+                           class="transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6"></lucide-icon>
+              <span class="text-xs font-semibold text-[#1e3d59]">Training</span>
+              <small class="text-[10px] text-stone-400">96% gyms</small>
+            </div>
+            <div class="group flex flex-col items-center gap-1.5 p-3 rounded-xl border border-[#8B7355]/20 bg-[#F5EFE6]
+                        cursor-pointer transition-all duration-200 hover:bg-[#8B7355]/8 hover:border-[#8B7355]/40 hover:shadow-sm">
+              <lucide-icon [img]="Star" [size]="18" color="#8B7355" [strokeWidth]="2"
+                           class="transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6"></lucide-icon>
+              <span class="text-xs font-semibold text-[#1e3d59]">Nutrition</span>
+              <small class="text-[10px] text-stone-400">88% gyms</small>
+            </div>
+            <div class="group flex flex-col items-center gap-1.5 p-3 rounded-xl border border-[#C6A969]/25 bg-[#F5EFE6]
+                        cursor-pointer transition-all duration-200 hover:bg-[#C6A969]/10 hover:border-[#C6A969]/50 hover:shadow-sm">
+              <lucide-icon [img]="Activity" [size]="18" color="#C6A969" [strokeWidth]="2"
+                           class="transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6"></lucide-icon>
+              <span class="text-xs font-semibold text-[#1e3d59]">Progress</span>
+              <small class="text-[10px] text-stone-400">74% gyms</small>
+            </div>
+            <div class="group flex flex-col items-center gap-1.5 p-3 rounded-xl border border-[#C6A969]/25 bg-[#F5EFE6]
+                        cursor-pointer transition-all duration-200 hover:bg-[#C6A969]/10 hover:border-[#C6A969]/50 hover:shadow-sm">
+              <lucide-icon [img]="MessageSquare" [size]="18" color="#C6A969" [strokeWidth]="2"
+                           class="transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6"></lucide-icon>
+              <span class="text-xs font-semibold text-[#1e3d59]">Messaging</span>
+              <small class="text-[10px] text-stone-400">51% gyms</small>
+            </div>
+            <div class="group flex flex-col items-center gap-1.5 p-3 rounded-xl border border-stone-200 bg-[#F5EFE6]
+                        cursor-pointer transition-all duration-200 hover:bg-[#1e3d59]/5 hover:border-[#1e3d59]/20 hover:shadow-sm">
+              <lucide-icon [img]="Briefcase" [size]="18" color="#1e3d59" [strokeWidth]="2"
+                           class="transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6"></lucide-icon>
+              <span class="text-xs font-semibold text-[#1e3d59]">Inventory</span>
+              <small class="text-[10px] text-stone-400">32% gyms</small>
+            </div>
+            <div class="group flex flex-col items-center gap-1.5 p-3 rounded-xl border border-stone-200 bg-[#F5EFE6]
+                        cursor-pointer transition-all duration-200 hover:bg-stone-50 hover:border-stone-300 hover:shadow-sm">
+              <lucide-icon [img]="FileBarChart" [size]="18" color="#a8a29e" [strokeWidth]="2"
+                           class="transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6"></lucide-icon>
+              <span class="text-xs font-semibold text-[#1e3d59]">Reports</span>
+              <small class="text-[10px] text-stone-400">28% gyms</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- ACTIVITY FEED -->
+        <div class="bg-white border border-stone-200 rounded-2xl p-5 shadow-sm relative overflow-hidden
+                    transition-shadow duration-300 hover:shadow-lg">
+          <span class="absolute top-0 left-0 right-0 h-[3px] bg-[#1e3d59]"></span>
+
+          <div class="flex items-center justify-between mb-5">
+            <div class="flex items-center gap-2.5">
+              <div class="w-9 h-9 rounded-xl bg-[#1e3d59]/8 flex items-center justify-center">
+                <lucide-icon [img]="Clock" [size]="18" color="#1e3d59" [strokeWidth]="2"></lucide-icon>
+              </div>
+              <div>
+                <h2 class="font-syne font-bold text-sm text-[#1e3d59]">Activity Feed</h2>
+                <p class="text-[11px] text-stone-400">System-wide events</p>
+              </div>
+            </div>
+            <button class="text-xs text-stone-400 border border-stone-200 rounded-lg px-3 py-1.5
+                           hover:text-[#1e3d59] hover:border-stone-300 transition-all duration-200">Clear</button>
+          </div>
+
+          <div class="flex flex-col divide-y divide-stone-100">
+            @for (item of activities; track item.time) {
+              <div class="flex items-start gap-3 py-2.5 transition-all duration-200
+                          hover:bg-[#F5EFE6] hover:px-2 rounded-lg px-1 hover:-mx-1">
+                <span [class]="dotColor(item.dot)"
+                      class="w-2 h-2 rounded-full mt-1.5 flex-shrink-0 animate-pulse"></span>
+                <div class="flex-1 min-w-0">
+                  <p class="text-xs text-stone-600 leading-snug">
+                    @if (item.text) { {{ item.text }} }
+                    <strong class="font-semibold text-[#1e3d59]">{{ item.strong }}</strong>
+                    @if (item.suffix) { {{ item.suffix }} }
+                  </p>
+                  <span class="text-[10px] text-stone-300">{{ item.time }}</span>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- QUICK ACTIONS -->
+        <div class="bg-white border border-stone-200 rounded-2xl p-5 shadow-sm relative overflow-hidden
+                    transition-shadow duration-300 hover:shadow-lg">
+          <span class="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#8B7355] to-[#1e3d59]"></span>
+
+          <h2 class="font-syne font-bold text-sm text-[#1e3d59] mb-4">Quick Actions</h2>
+
+          <div class="grid grid-cols-2 gap-3">
+            @for (action of actions; track action.label) {
+              <button class="group relative flex flex-col items-center justify-center gap-2.5 py-4 px-3
+                             bg-[#F5EFE6] border border-stone-200 rounded-xl text-stone-500 text-xs font-medium
+                             overflow-hidden cursor-pointer transition-all duration-300 ease-out
+                             hover:-translate-y-0.5 hover:shadow-md hover:border-[#8B7355]/40 hover:text-[#8B7355]">
+                <span class="absolute inset-0 bg-[#8B7355] translate-y-full group-hover:translate-y-0
+                             transition-transform duration-300 ease-out z-0"></span>
+                <lucide-icon [img]="action.icon" [size]="20" [strokeWidth]="1.75"
+                             class="relative z-10 transition-transform duration-300
+                                    group-hover:scale-110 group-hover:-rotate-6 group-hover:text-white">
+                </lucide-icon>
+                <span class="relative z-10 transition-colors duration-300 group-hover:text-white font-semibold">
+                  {{ action.label }}
+                </span>
+              </button>
+            }
+          </div>
+        </div>
+
+      </div>
+    }
+
+    <!-- CREATE GYM MODAL -->
+    @if (showCreateModal()) {
+      <app-create-gym-modal
+        (gymCreated)="onGymCreated()"
+        (cancelled)="closeCreateModal()">
+      </app-create-gym-modal>
+    }
+
+    <!-- EDIT GYM MODAL -->
+    @if (showEditModal() && editingGymId()) {
+      <app-edit-gym-modal
+        [gymId]="editingGymId()!"
+        (gymUpdated)="onGymUpdated()"
+        (cancelled)="closeEditModal()">
+      </app-edit-gym-modal>
+    }
+
+    <!-- ASSIGN ADMIN MODAL -->
+    @if (showAssignModal() && assigningGymId()) {
+      <app-assign-admin-modal
+        [gymId]="assigningGymId()!"
+        [gymName]="assigningGymName()"
+        (assigned)="onAdminAssigned()"
+        (cancelled)="closeAssignAdmin()">
+      </app-assign-admin-modal>
+    }
+
+  </div>
+</div>

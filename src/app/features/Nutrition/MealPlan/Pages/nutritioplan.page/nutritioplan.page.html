@@ -1,0 +1,249 @@
+<div class="page-shell">
+  <div class="max-w-4xl mx-auto">
+
+    <!-- Header -->
+    <div class="flex items-center gap-3 mb-6">
+      <div class="rounded-2xl bg-accent/10 p-2.5">
+        <lucide-icon [img]="UtensilsCrossed" class="w-6 h-6 text-accent-bright"></lucide-icon>
+      </div>
+      <div>
+        <h1 class="page-title">Planes de <span class="page-title-accent">Comida</span></h1>
+        <p class="page-subtitle">Arma y asigna planes de comida por cliente.</p>
+      </div>
+    </div>
+
+    @if (clientsError()) {
+      <div class="alert-error mb-4" role="alert">
+        <lucide-icon [img]="AlertTriangle" class="w-4 h-4 mt-0.5 shrink-0"></lucide-icon>
+        <div class="leading-5">{{ clientsError() }}</div>
+      </div>
+    }
+
+    <!-- Client picker -->
+    <div class="mb-6">
+      <label class="field-label">Cliente</label>
+      <select [ngModel]="selectedClientId()" (ngModelChange)="selectedClientId.set($event); onClientChange()" class="field">
+        <option value="">Selecciona un cliente...</option>
+        @for (c of clients(); track c.clientProfileId) {
+          <option [value]="c.clientProfileId">{{ c.firstName }} {{ c.lastName }} — {{ c.email }}</option>
+        }
+      </select>
+    </div>
+
+    @if (selectedClientId()) {
+      <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+
+        <!-- Plans list + create -->
+        <div class="lg:col-span-2 space-y-4">
+          <div class="card-flat p-4">
+            <label class="field-label">Nuevo plan</label>
+            <div class="flex gap-2">
+              <input type="text" [ngModel]="newPlanName()" (ngModelChange)="newPlanName.set($event)" placeholder="Ej. Definición 2200 kcal" class="field"/>
+              <button type="button" (click)="createPlan()" [disabled]="isCreatingPlan()" class="btn-brand shrink-0 px-3">
+                @if (isCreatingPlan()) { <span class="spinner-sm text-on-accent/70"></span> }
+                @else { <lucide-icon [img]="Plus" class="w-4 h-4"></lucide-icon> }
+              </button>
+            </div>
+            @if (createError()) { <p class="text-meta text-red-300 mt-2" role="alert">{{ createError() }}</p> }
+          </div>
+
+          @if (isLoadingPlans()) {
+            <div class="flex items-center justify-center h-24"><div class="spinner w-6 h-6"></div></div>
+          } @else if (plansError()) {
+            <div class="alert-error" role="alert"><div class="leading-5">{{ plansError() }}</div></div>
+          } @else if (plans().length === 0) {
+            <p class="text-body text-ink-dim px-1">Este cliente aún no tiene planes.</p>
+          } @else {
+            <ul class="space-y-2">
+              @for (plan of plans(); track plan.id) {
+                <li>
+                  <button type="button" (click)="selectPlan(plan.id)"
+                    class="w-full text-left card-flat px-4 py-3 transition duration-200 ease-cine hover:border-hairline-strong"
+                    [class.border-accent]="selectedPlan()?.id === plan.id">
+                    <div class="flex items-center justify-between gap-2">
+                      <span class="font-medium text-ink truncate">{{ plan.name }}</span>
+                      <span [class]="plan.status === MealPlanStatus.Active ? 'badge-accent' : 'badge-muted'">
+                        {{ statusLabel[plan.status] }}
+                      </span>
+                    </div>
+                    <div class="text-meta text-ink-dim mt-0.5">{{ plan.entryCount }} alimentos</div>
+                  </button>
+                </li>
+              }
+            </ul>
+          }
+        </div>
+
+        <!-- Selected plan -->
+        <div class="lg:col-span-3">
+          @if (isLoadingPlan()) {
+            <div class="flex items-center justify-center h-40"><div class="spinner w-7 h-7"></div></div>
+          } @else if (selectedPlan(); as p) {
+            <div class="card">
+              <div class="card-hairline"></div>
+              <div class="p-5">
+
+                <div class="flex items-start justify-between gap-3 mb-4">
+                  @if (isRenaming()) {
+                    <div class="flex gap-2 flex-1">
+                      <input type="text" [ngModel]="renameValue()" (ngModelChange)="renameValue.set($event)" class="field"/>
+                      <button type="button" (click)="confirmRename()" [disabled]="busyPlan()" class="btn-brand shrink-0 px-3">
+                        <lucide-icon [img]="Check" class="w-4 h-4"></lucide-icon>
+                      </button>
+                      <button type="button" (click)="isRenaming.set(false)" class="btn-ghost shrink-0 px-3">
+                        <lucide-icon [img]="X" class="w-4 h-4"></lucide-icon>
+                      </button>
+                    </div>
+                  } @else {
+                    <div>
+                      <div class="flex items-center gap-2">
+                        <span class="text-lg font-semibold text-ink">{{ p.name }}</span>
+                        <button type="button" (click)="startRename()" class="btn-icon" title="Renombrar">
+                          <lucide-icon [img]="Pencil" class="w-3.5 h-3.5"></lucide-icon>
+                        </button>
+                      </div>
+                      <span [class]="p.status === MealPlanStatus.Active ? 'badge-accent' : 'badge-muted'">
+                        {{ statusLabel[p.status] }}
+                      </span>
+                    </div>
+                    <div class="flex gap-2 shrink-0">
+                      @if (p.status !== MealPlanStatus.Active) {
+                        <button type="button" (click)="activatePlan()" [disabled]="busyPlan()"
+                          class="btn-ghost text-emerald-300 border-emerald-900/50 hover:bg-emerald-900/20">
+                          <lucide-icon [img]="Check" class="w-3.5 h-3.5"></lucide-icon> Activar
+                        </button>
+                      }
+                      @if (p.status !== MealPlanStatus.Archived) {
+                        <button type="button" (click)="archivePlan()" [disabled]="busyPlan()" class="btn-ghost">
+                          <lucide-icon [img]="Archive" class="w-3.5 h-3.5"></lucide-icon>
+                        </button>
+                      }
+                    </div>
+                  }
+                </div>
+
+                @if (planError()) {
+                  <div class="alert-error mb-4" role="alert"><div class="leading-5">{{ planError() }}</div></div>
+                }
+
+                <!-- Macro totals -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-5">
+                  <div class="rounded-field bg-surface-raised/50 p-2 text-center">
+                    <div class="text-h2 text-accent-bright">{{ p.totalCalories }}</div>
+                    <div class="text-eyebrow uppercase text-ink-dim">kcal</div>
+                  </div>
+                  <div class="rounded-field bg-surface-raised/50 p-2 text-center">
+                    <div class="text-h2 text-ink">{{ p.totalProtein }}</div>
+                    <div class="text-eyebrow uppercase text-ink-dim">Prot.</div>
+                  </div>
+                  <div class="rounded-field bg-surface-raised/50 p-2 text-center">
+                    <div class="text-h2 text-ink">{{ p.totalCarbs }}</div>
+                    <div class="text-eyebrow uppercase text-ink-dim">Carbs</div>
+                  </div>
+                  <div class="rounded-field bg-surface-raised/50 p-2 text-center">
+                    <div class="text-h2 text-ink">{{ p.totalFat }}</div>
+                    <div class="text-eyebrow uppercase text-ink-dim">Grasa</div>
+                  </div>
+                </div>
+
+                <!-- Add entry -->
+                <div class="rounded-field border border-hairline p-3 mb-5">
+                  <p class="text-eyebrow uppercase text-ink-dim mb-2">Agregar alimento</p>
+                  <div class="grid grid-cols-2 gap-2">
+                    <select [ngModel]="entryDay()" (ngModelChange)="entryDay.set($event)" class="field">
+                      <option [ngValue]="''" disabled>Día...</option>
+                      @for (d of dayOptions; track d.value) { <option [ngValue]="d.value">{{ d.label }}</option> }
+                    </select>
+                    <select [ngModel]="entryMeal()" (ngModelChange)="entryMeal.set($event)" class="field">
+                      <option [ngValue]="''" disabled>Comida...</option>
+                      @for (m of mealOptions; track m.value) { <option [ngValue]="m.value">{{ m.label }}</option> }
+                    </select>
+                    <select [ngModel]="entryFoodId()" (ngModelChange)="entryFoodId.set($event)" class="field col-span-2"
+                            [disabled]="foods().length === 0">
+                      <option value="" disabled>Alimento...</option>
+                      @for (f of foods(); track f.id) { <option [value]="f.id">{{ f.name }}</option> }
+                    </select>
+                    <input type="number" min="1" [ngModel]="entryGrams()" (ngModelChange)="entryGrams.set($event)" placeholder="Gramos" class="field"/>
+                    <button type="button" (click)="addEntry()"
+                            [disabled]="isAddingEntry() || foods().length === 0" class="btn-brand">
+                      @if (isAddingEntry()) { <span class="spinner-sm text-on-accent/70"></span> Agregando... }
+                      @else { <lucide-icon [img]="Plus" class="w-4 h-4"></lucide-icon> Agregar }
+                    </button>
+                  </div>
+
+                  @if (foodsLoaded() && foods().length === 0) {
+                    <p class="text-meta text-ink-dim mt-2">
+                      @if (foodsError()) {
+                        {{ foodsError() }}
+                      } @else {
+                        Aún no hay alimentos en el catálogo.
+                        <a routerLink="/manage/nutrition/foods" class="text-accent-bright underline">Crea alimentos</a>
+                        para poder agregarlos a un plan.
+                      }
+                    </p>
+                  }
+                  @if (entryError()) { <p class="text-meta text-red-300 mt-2" role="alert">{{ entryError() }}</p> }
+                </div>
+
+                <!-- Entries by day / meal -->
+                @if (days().length === 0) {
+                  <p class="text-body text-ink-dim text-center py-6">El plan aún no tiene alimentos.</p>
+                } @else {
+                  <div class="space-y-3">
+                    @for (day of days(); track day.day) {
+                      <div>
+                        <h3 class="text-eyebrow uppercase text-ink-dim mb-1">{{ day.label }}</h3>
+                        <div class="card-flat divide-y divide-hairline/60">
+                          @for (meal of day.meals; track meal.meal) {
+                            <div class="px-4 py-2.5">
+                              <div class="text-eyebrow uppercase text-accent-bright mb-1">{{ meal.label }}</div>
+                              <ul class="space-y-1">
+                                @for (entry of meal.entries; track entry.id; let first = $first, last = $last) {
+                                  <li class="flex items-center justify-between gap-2 text-body">
+                                    <span class="text-ink truncate">{{ entry.foodName }}</span>
+                                    <span class="flex items-center gap-2 shrink-0 text-ink-dim tabular-nums">
+                                      {{ entry.quantityGrams }} g · {{ entry.calories }} kcal
+                                      <span class="flex items-center">
+                                        <button type="button" (click)="moveEntry(entry, -1)"
+                                          [disabled]="first || movingEntryId() !== null"
+                                          class="btn-icon w-7 h-7 disabled:opacity-30" title="Subir">
+                                          <lucide-icon [img]="ChevronUp" class="w-3.5 h-3.5"></lucide-icon>
+                                        </button>
+                                        <button type="button" (click)="moveEntry(entry, 1)"
+                                          [disabled]="last || movingEntryId() !== null"
+                                          class="btn-icon w-7 h-7 disabled:opacity-30" title="Bajar">
+                                          <lucide-icon [img]="ChevronDown" class="w-3.5 h-3.5"></lucide-icon>
+                                        </button>
+                                      </span>
+                                      <button type="button" (click)="removeEntry(entry)"
+                                        [disabled]="removingEntryId() === entry.id"
+                                        class="btn-icon btn-icon-danger w-7 h-7" title="Quitar">
+                                        @if (removingEntryId() === entry.id) {
+                                          <span class="spinner-sm text-ink-muted"></span>
+                                        } @else {
+                                          <lucide-icon [img]="Trash2" class="w-3.5 h-3.5"></lucide-icon>
+                                        }
+                                      </button>
+                                    </span>
+                                  </li>
+                                }
+                              </ul>
+                            </div>
+                          }
+                        </div>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          } @else {
+            <div class="card-flat p-10 text-center text-body text-ink-dim">
+              Selecciona o crea un plan para editarlo.
+            </div>
+          }
+        </div>
+      </div>
+    }
+  </div>
+</div>

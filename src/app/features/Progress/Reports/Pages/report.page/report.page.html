@@ -1,0 +1,155 @@
+<div class="page-shell">
+  <div class="max-w-3xl mx-auto">
+
+    <!-- Header -->
+    <div class="flex items-center gap-3 mb-6">
+      <div class="rounded-2xl bg-accent/10 p-2.5">
+        <lucide-icon [img]="FileText" class="w-6 h-6 text-accent-bright"></lucide-icon>
+      </div>
+      <div>
+        <h1 class="page-title">Reporte de <span class="page-title-accent">Progreso</span></h1>
+        <p class="page-subtitle">Resumen mensual del cliente, comparado con el mes anterior.</p>
+      </div>
+    </div>
+
+    @if (clientsError()) {
+      <div class="alert-error mb-4" role="alert">
+        <lucide-icon [img]="AlertTriangle" class="w-4 h-4 mt-0.5 shrink-0"></lucide-icon>
+        <div class="leading-5">{{ clientsError() }}</div>
+      </div>
+    }
+
+    <!-- Controls -->
+    <div class="flex flex-wrap items-end gap-3 mb-6">
+      <div class="flex-1 min-w-[14rem]">
+        <label class="field-label">Cliente</label>
+        <select [ngModel]="selectedClientId()"
+                (ngModelChange)="selectedClientId.set($event); onClientChange()" class="field">
+          <option value="">Selecciona un cliente...</option>
+          @for (c of clients(); track c.clientProfileId) {
+            <option [value]="c.clientProfileId">{{ c.firstName }} {{ c.lastName }} — {{ c.email }}</option>
+          }
+        </select>
+      </div>
+
+      <div>
+        <label class="field-label">Mes</label>
+        <div class="flex items-center gap-1">
+          <button type="button" (click)="shiftMonth(-1)" [disabled]="!selectedClientId()" class="btn-icon" title="Mes anterior">
+            <lucide-icon [img]="ChevronLeft" class="w-4 h-4"></lucide-icon>
+          </button>
+          <input type="month" [(ngModel)]="monthInput" [disabled]="!selectedClientId()"
+            class="field w-[10rem] text-center"/>
+          <button type="button" (click)="shiftMonth(1)" [disabled]="!selectedClientId()" class="btn-icon" title="Mes siguiente">
+            <lucide-icon [img]="ChevronRight" class="w-4 h-4"></lucide-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    @if (!selectedClientId()) {
+      <div class="card-flat p-10 text-center text-body text-ink-dim">
+        Elige un cliente para ver su reporte de progreso.
+      </div>
+    } @else if (isLoading()) {
+      <div class="flex items-center justify-center h-40"><div class="spinner w-7 h-7"></div></div>
+    } @else if (error()) {
+      <div class="alert-error p-5" role="alert">
+        <lucide-icon [img]="AlertTriangle" class="w-5 h-5 mt-0.5 shrink-0"></lucide-icon>
+        <div class="leading-5">{{ error() }}</div>
+      </div>
+    } @else if (report(); as r) {
+
+      <div class="card">
+        <div class="card-hairline"></div>
+        <div class="p-6">
+          <div class="flex items-center justify-between flex-wrap gap-3 mb-5">
+            <div>
+              <div class="text-h2 text-ink">{{ periodLabel() }}</div>
+              <div class="text-meta text-ink-dim">Comparado con el mes anterior · calculado en vivo</div>
+            </div>
+            <button type="button" (click)="generate()" [disabled]="isGenerating()" class="btn-brand">
+              @if (isGenerating()) {
+                <span class="spinner-sm text-on-accent/70"></span> Guardando...
+              } @else {
+                <lucide-icon [img]="Zap" class="w-4 h-4"></lucide-icon> Guardar snapshot
+              }
+            </button>
+          </div>
+
+          @if (generateSuccess()) {
+            <div class="alert-success mb-4" role="status">
+              <lucide-icon [img]="CheckCircle2" class="w-4 h-4 mt-0.5 shrink-0"></lucide-icon>
+              <div class="leading-5">Snapshot del reporte guardado.</div>
+            </div>
+          }
+          @if (generateError()) {
+            <div class="alert-error mb-4" role="alert">
+              <lucide-icon [img]="AlertTriangle" class="w-4 h-4 mt-0.5 shrink-0"></lucide-icon>
+              <div class="leading-5">{{ generateError() }}</div>
+            </div>
+          }
+
+          <!-- Metric cards -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            @for (card of cards(); track card.key) {
+              <div class="rounded-field border border-hairline bg-surface-raised/40 p-4">
+                <div class="text-eyebrow uppercase text-ink-dim mb-1">{{ card.label }}</div>
+                <div class="flex items-baseline gap-2">
+                  <span class="text-display text-ink leading-none">{{ format(card.metric.current) }}</span>
+                  <span class="text-meta text-ink-dim">{{ card.unit }}</span>
+                </div>
+                <div class="mt-2 flex items-center gap-2 text-meta">
+                  @if (tone(card.metric, card.lowerIsBetter) === 'good') {
+                    <span class="inline-flex items-center gap-1 text-emerald-400">
+                      <lucide-icon [img]="card.lowerIsBetter ? TrendingDown : TrendingUp" class="w-3.5 h-3.5"></lucide-icon>
+                      {{ formatDelta(card.metric.delta) }} {{ card.unit }}
+                    </span>
+                  } @else if (tone(card.metric, card.lowerIsBetter) === 'bad') {
+                    <span class="inline-flex items-center gap-1 text-red-400">
+                      <lucide-icon [img]="card.lowerIsBetter ? TrendingUp : TrendingDown" class="w-3.5 h-3.5"></lucide-icon>
+                      {{ formatDelta(card.metric.delta) }} {{ card.unit }}
+                    </span>
+                  } @else {
+                    <span class="inline-flex items-center gap-1 text-ink-dim">
+                      <lucide-icon [img]="Minus" class="w-3.5 h-3.5"></lucide-icon>
+                      sin cambio
+                    </span>
+                  }
+                  <span class="text-ink-dim">·  mes previo {{ format(card.metric.previous) }} {{ card.unit }}</span>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Snapshot history -->
+      <div class="card mt-6">
+        <div class="card-header">
+          <div class="card-header-icon"><lucide-icon [img]="FileText" class="w-4 h-4"></lucide-icon></div>
+          <div>
+            <h2 class="text-h2 text-ink">Snapshots guardados</h2>
+            <p class="text-[11px] text-ink-dim">{{ history().length }} en total</p>
+          </div>
+        </div>
+        @if (historyError()) {
+          <div class="alert-error m-4" role="alert">
+            <lucide-icon [img]="AlertTriangle" class="w-4 h-4 mt-0.5 shrink-0"></lucide-icon>
+            <div class="leading-5">{{ historyError() }}</div>
+          </div>
+        } @else if (history().length === 0) {
+          <div class="p-8 text-center text-body text-ink-dim">Aún no se ha guardado ningún snapshot.</div>
+        } @else {
+          <ul class="divide-y divide-hairline/60">
+            @for (snap of history(); track snap.id) {
+              <li class="px-5 py-3 text-body text-ink-muted">
+                {{ snap.createdAtUtc | date: 'dd/MM/yyyy HH:mm' }}
+              </li>
+            }
+          </ul>
+        }
+      </div>
+    }
+  </div>
+</div>

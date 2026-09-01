@@ -1,0 +1,221 @@
+<div class="page-shell">
+  <div class="max-w-3xl mx-auto">
+
+    <a routerLink="/manage/training/routines"
+      class="inline-flex items-center gap-1.5 text-meta font-medium text-ink-muted hover:text-ink transition mb-4">
+      <lucide-icon [img]="ArrowLeft" class="w-3.5 h-3.5"></lucide-icon>
+      Volver a rutinas
+    </a>
+
+    @if (isLoading()) {
+      <div class="flex items-center justify-center h-40"><div class="spinner w-7 h-7"></div></div>
+    } @else if (error()) {
+      <div class="alert-error p-5" role="alert">
+        <lucide-icon [img]="AlertTriangle" class="w-5 h-5 mt-0.5 shrink-0"></lucide-icon>
+        <div class="leading-5">{{ error() }}</div>
+      </div>
+    } @else if (routine(); as r) {
+
+      <!-- Header -->
+      <div class="flex items-center gap-3 mb-6">
+        <div class="rounded-2xl bg-accent/10 p-2.5">
+          <lucide-icon [img]="ListChecks" class="w-6 h-6 text-accent-bright"></lucide-icon>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="page-title">{{ r.name }}</h1>
+            <span [class]="isDraft() ? 'badge-muted' : 'badge-accent'">{{ statusLabel() }}</span>
+          </div>
+          <p class="page-subtitle">v{{ r.version }} · {{ exercises().length }} ejercicio(s)</p>
+        </div>
+      </div>
+
+      @if (!isDraft()) {
+        <div class="alert-error mb-4" role="alert">
+          <lucide-icon [img]="AlertTriangle" class="w-4 h-4 mt-0.5 shrink-0"></lucide-icon>
+          <div class="leading-5">Solo las rutinas en borrador se pueden editar. Crea una versión nueva para cambiarla.</div>
+        </div>
+      }
+
+      @if (actionError()) {
+        <div class="alert-error mb-4" role="alert">
+          <lucide-icon [img]="AlertTriangle" class="w-4 h-4 mt-0.5 shrink-0"></lucide-icon>
+          <div class="leading-5">{{ actionError() }}</div>
+        </div>
+      }
+
+      <!-- Exercise list -->
+      <div class="card mb-6">
+        <div class="card-header">
+          <div class="card-header-icon"><lucide-icon [img]="ListChecks" class="w-4 h-4"></lucide-icon></div>
+          <div>
+            <h2 class="text-h2 text-ink">Ejercicios de la rutina</h2>
+            <p class="text-[11px] text-ink-dim">En orden de ejecución</p>
+          </div>
+        </div>
+
+        @if (exercises().length === 0) {
+          <div class="p-8 text-center text-body text-ink-dim">
+            Esta rutina no tiene ejercicios todavía. Agrégalos abajo — una rutina necesita al menos uno para poder publicarse.
+          </div>
+        } @else {
+          <ul class="divide-y divide-hairline/60">
+            @for (ex of exercises(); track ex.exerciseId) {
+              <li class="flex items-center gap-3 px-5 py-3">
+                <span class="w-6 shrink-0 text-center text-meta tabular-nums text-ink-dim">{{ ex.order }}</span>
+                <div class="flex-1 min-w-0">
+                  <div class="font-medium text-ink truncate">{{ exerciseName(ex.exerciseId) }}</div>
+                  <div class="text-meta text-ink-dim tabular-nums">
+                    {{ ex.suggestedSets }}×{{ ex.suggestedReps }} · descanso {{ ex.suggestedRestSeconds }}s
+                  </div>
+                </div>
+                @if (isDraft()) {
+                  <div class="flex items-center gap-1 shrink-0">
+                    <button type="button" (click)="moveUp(ex)" [disabled]="ex.order <= 1 || busyExerciseId() === ex.exerciseId"
+                      class="btn-icon w-7 h-7" title="Subir">
+                      <lucide-icon [img]="ChevronUp" class="w-4 h-4"></lucide-icon>
+                    </button>
+                    <button type="button" (click)="moveDown(ex)" [disabled]="ex.order >= exercises().length || busyExerciseId() === ex.exerciseId"
+                      class="btn-icon w-7 h-7" title="Bajar">
+                      <lucide-icon [img]="ChevronDown" class="w-4 h-4"></lucide-icon>
+                    </button>
+                    <button type="button" (click)="remove(ex)" [disabled]="busyExerciseId() === ex.exerciseId"
+                      class="btn-icon btn-icon-danger w-7 h-7" title="Quitar">
+                      @if (busyExerciseId() === ex.exerciseId) {
+                        <span class="spinner-sm text-ink-muted"></span>
+                      } @else {
+                        <lucide-icon [img]="Trash2" class="w-4 h-4"></lucide-icon>
+                      }
+                    </button>
+                  </div>
+                }
+              </li>
+            }
+          </ul>
+        }
+      </div>
+
+      <!-- Versions -->
+      <div class="card mb-6">
+        <div class="card-header">
+          <div class="card-header-icon"><lucide-icon [img]="GitBranch" class="w-4 h-4"></lucide-icon></div>
+          <div>
+            <h2 class="text-h2 text-ink">Versiones</h2>
+            <p class="text-[11px] text-ink-dim">{{ versions().length }} en el grupo</p>
+          </div>
+        </div>
+
+        <div class="p-5">
+          @if (versionsError()) {
+            <div class="alert-error mb-3" role="alert">
+              <lucide-icon [img]="AlertTriangle" class="w-4 h-4 mt-0.5 shrink-0"></lucide-icon>
+              <div class="leading-5">{{ versionsError() }}</div>
+            </div>
+          } @else if (versions().length === 0) {
+            <p class="text-body text-ink-dim">Esta rutina no tiene otras versiones.</p>
+          } @else {
+            <ul class="divide-y divide-hairline/60 -mx-5">
+              @for (v of versions(); track v.id) {
+                <li class="flex items-center gap-3 px-5 py-2.5">
+                  <span class="w-12 shrink-0 text-meta tabular-nums text-ink-dim">v{{ v.version }}</span>
+                  <span [class]="v.status === RoutineStatus.Published ? 'badge-accent' : 'badge-muted'">
+                    {{ routineStatusLabel[v.status] }}
+                  </span>
+                  <span class="text-meta text-ink-dim ml-auto">{{ v.createdAt | date: 'dd/MM/yyyy' }}</span>
+                  @if (v.id === r.id) {
+                    <span class="text-meta text-accent-bright shrink-0">· viendo</span>
+                  } @else {
+                    <a [routerLink]="['/manage/training/routines', v.id]"
+                       class="text-meta text-accent-bright underline shrink-0">abrir</a>
+                  }
+                </li>
+              }
+            </ul>
+          }
+
+          @if (canCreateVersion()) {
+            <div class="mt-4 pt-4 border-t border-hairline/60">
+              @if (createVersionError()) {
+                <div class="alert-error mb-3" role="alert">
+                  <lucide-icon [img]="AlertTriangle" class="w-4 h-4 mt-0.5 shrink-0"></lucide-icon>
+                  <div class="leading-5">{{ createVersionError() }}</div>
+                </div>
+              }
+              <button type="button" (click)="createVersion()" [disabled]="isCreatingVersion()" class="btn-ghost">
+                @if (isCreatingVersion()) {
+                  <span class="spinner-sm text-ink-muted"></span> Creando...
+                } @else {
+                  <lucide-icon [img]="GitBranch" class="w-3.5 h-3.5"></lucide-icon>
+                  Crear versión nueva (borrador)
+                }
+              </button>
+              <p class="text-meta text-ink-dim mt-2">
+                Duplica esta rutina publicada como un borrador editable; la versión publicada no cambia.
+              </p>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Add exercise -->
+      @if (isDraft()) {
+        <div class="card">
+          <div class="card-hairline"></div>
+          <div class="p-6">
+            <div class="flex items-center gap-2 mb-4">
+              <lucide-icon [img]="Plus" class="w-5 h-5 text-accent-bright"></lucide-icon>
+              <h2 class="text-h2 text-ink">Agregar ejercicio</h2>
+            </div>
+
+            @if (addError()) {
+              <div class="alert-error mb-4" role="alert">
+                <lucide-icon [img]="AlertTriangle" class="w-4 h-4 mt-0.5 shrink-0"></lucide-icon>
+                <div class="leading-5">{{ addError() }}</div>
+              </div>
+            }
+
+            <div class="space-y-4">
+              <div>
+                <label class="field-label">Ejercicio <span class="text-accent-bright">*</span></label>
+                <select [(ngModel)]="addExerciseId" class="field">
+                  <option value="" disabled>Selecciona del catálogo...</option>
+                  @for (e of availableToAdd(); track e.id) {
+                    <option [value]="e.id">{{ e.name }}</option>
+                  }
+                </select>
+                @if (availableToAdd().length === 0 && catalog().length > 0) {
+                  <p class="text-meta text-ink-dim mt-1">Ya agregaste todos los ejercicios del catálogo.</p>
+                }
+              </div>
+
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <div>
+                  <label class="field-label">Series <span class="text-accent-bright">*</span></label>
+                  <input type="number" min="1" [(ngModel)]="addSets" class="field"/>
+                </div>
+                <div>
+                  <label class="field-label">Reps <span class="text-accent-bright">*</span></label>
+                  <input type="number" min="1" [(ngModel)]="addReps" class="field"/>
+                </div>
+                <div>
+                  <label class="field-label">Descanso (s)</label>
+                  <input type="number" min="0" [(ngModel)]="addRest" class="field"/>
+                </div>
+              </div>
+
+              <div class="flex justify-end">
+                <button type="button" (click)="addExercise()" [disabled]="isAdding()" class="btn-brand">
+                  @if (isAdding()) {
+                    <span class="spinner-sm text-on-accent/70"></span> Agregando...
+                  } @else {
+                    <lucide-icon [img]="Plus" class="w-4 h-4"></lucide-icon> Agregar
+                  }
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+    }
+  </div>
+</div>

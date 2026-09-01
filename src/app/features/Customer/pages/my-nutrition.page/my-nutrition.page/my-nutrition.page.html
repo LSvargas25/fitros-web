@@ -1,0 +1,101 @@
+<div class="page-shell">
+  <div class="max-w-3xl mx-auto">
+
+    <!-- Header -->
+    <div class="flex items-center gap-3 mb-6">
+      <div class="rounded-2xl bg-accent/10 p-2.5">
+        <lucide-icon [img]="Salad" class="w-6 h-6 text-accent-bright"></lucide-icon>
+      </div>
+      <div>
+        <h1 class="page-title">Mi <span class="page-title-accent">Nutrición</span></h1>
+        <p class="page-subtitle">Tu plan de comidas activo.</p>
+      </div>
+    </div>
+
+    @if (isLoading()) {
+      <div class="flex items-center justify-center h-40"><div class="spinner w-7 h-7"></div></div>
+    } @else if (error()) {
+      <div class="alert-error p-5" role="alert">
+        <lucide-icon [img]="AlertTriangle" class="w-5 h-5 mt-0.5 shrink-0"></lucide-icon>
+        <div class="leading-5">{{ error() }}</div>
+      </div>
+    } @else if (hasNoPlan()) {
+      <div class="card-flat p-10 text-center">
+        <lucide-icon [img]="UtensilsCrossed" class="w-8 h-8 text-ink-dim mx-auto mb-3"></lucide-icon>
+        <p class="text-body text-ink-muted">Todavía no tienes un plan de comidas activo.</p>
+        <p class="text-meta text-ink-dim mt-1">Tu entrenador te asignará uno pronto.</p>
+      </div>
+    } @else if (plan(); as p) {
+
+      <!-- Plan summary -->
+      <div class="card mb-6">
+        <div class="card-hairline"></div>
+        <div class="p-6">
+          <div class="flex items-center justify-between flex-wrap gap-3 mb-4">
+            <div>
+              <div class="text-lg font-semibold text-ink">{{ p.name }}</div>
+              <div class="text-meta text-ink-dim">Activo desde {{ p.createdAt | date: 'dd/MM/yyyy' }}</div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div class="rounded-field bg-surface-raised/50 p-3 text-center">
+              <div class="text-display text-accent-bright leading-none">{{ p.totalCalories }}</div>
+              <div class="text-eyebrow uppercase text-ink-dim mt-1">kcal / semana</div>
+            </div>
+            <div class="rounded-field bg-surface-raised/50 p-3 text-center">
+              <div class="text-lg font-semibold text-ink">{{ p.totalProtein }} g</div>
+              <div class="text-eyebrow uppercase text-ink-dim mt-1">Proteína</div>
+            </div>
+            <div class="rounded-field bg-surface-raised/50 p-3 text-center">
+              <div class="text-lg font-semibold text-ink">{{ p.totalCarbs }} g</div>
+              <div class="text-eyebrow uppercase text-ink-dim mt-1">Carbs</div>
+            </div>
+            <div class="rounded-field bg-surface-raised/50 p-3 text-center">
+              <div class="text-lg font-semibold text-ink">{{ p.totalFat }} g</div>
+              <div class="text-eyebrow uppercase text-ink-dim mt-1">Grasa</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      @if (days().length === 0) {
+        <div class="card-flat p-8 text-center text-body text-ink-dim">
+          Tu plan aún no tiene comidas cargadas.
+        </div>
+      } @else {
+        <div class="space-y-4">
+          @for (day of days(); track day.day) {
+            <div class="card-flat overflow-hidden">
+              <div class="flex items-center justify-between px-5 py-3 border-b border-hairline/80">
+                <h2 class="text-h2 text-ink">{{ day.label }}</h2>
+                <span class="text-meta text-ink-dim tabular-nums">
+                  {{ day.calories }} kcal · {{ day.protein }}P / {{ day.carbs }}C / {{ day.fat }}G
+                </span>
+              </div>
+
+              <div class="divide-y divide-hairline/60">
+                @for (meal of day.meals; track meal.meal) {
+                  <div class="px-5 py-3">
+                    <div class="flex items-center justify-between mb-2">
+                      <span class="text-eyebrow uppercase text-accent-bright">{{ meal.label }}</span>
+                      <span class="text-meta text-ink-dim tabular-nums">{{ meal.calories }} kcal</span>
+                    </div>
+                    <ul class="space-y-1">
+                      @for (entry of meal.entries; track entry.id) {
+                        <li class="flex items-center justify-between text-body">
+                          <span class="text-ink">{{ entry.foodName }}</span>
+                          <span class="text-ink-dim tabular-nums">{{ entry.quantityGrams }} g · {{ entry.calories }} kcal</span>
+                        </li>
+                      }
+                    </ul>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      }
+    }
+  </div>
+</div>

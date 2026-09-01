@@ -1,0 +1,124 @@
+<div class="page-shell">
+  <div class="max-w-2xl mx-auto">
+
+    <!-- Header -->
+    <div class="flex items-center gap-3 mb-6">
+      <div class="rounded-2xl bg-accent/10 p-2.5">
+        <lucide-icon [img]="User" class="w-6 h-6 text-accent-bright"></lucide-icon>
+      </div>
+      <div>
+        <h1 class="page-title">Mi <span class="page-title-accent">Perfil</span></h1>
+        <p class="page-subtitle">Consulta y actualiza tus datos básicos.</p>
+      </div>
+    </div>
+
+    @if (isLoading()) {
+      <div class="flex items-center justify-center h-40">
+        <div class="spinner w-7 h-7"></div>
+      </div>
+    } @else if (error()) {
+      <div class="alert-error p-5" role="alert">
+        <lucide-icon [img]="AlertTriangle" class="w-5 h-5 mt-0.5 shrink-0"></lucide-icon>
+        <div class="leading-5">{{ error() }}</div>
+      </div>
+    } @else if (user(); as u) {
+
+      <div class="card">
+        <div class="card-hairline"></div>
+
+        <div class="p-6">
+          <!-- Identity strip -->
+          <div class="flex items-center gap-4 mb-6">
+            <div class="w-16 h-16 rounded-2xl bg-accent/15 flex items-center justify-center font-semibold text-xl text-accent-bright">
+              {{ (u.firstName.charAt(0) + u.lastName.charAt(0)).toUpperCase() }}
+            </div>
+            <div class="min-w-0">
+              <div class="text-lg font-semibold text-ink truncate">{{ u.firstName }} {{ u.lastName }}</div>
+              <div class="flex items-center gap-2 mt-1">
+                <span class="badge-accent">
+                  <lucide-icon [img]="ShieldCheck" class="w-3 h-3"></lucide-icon>
+                  {{ roleLabel(u.role) }}
+                </span>
+                <span class="text-[11px] text-ink-dim">Miembro desde {{ u.createdAt | date: 'MMMM yyyy' }}</span>
+              </div>
+            </div>
+          </div>
+
+          @if (saveSuccess()) {
+            <div class="alert-success mb-4" role="status">
+              <lucide-icon [img]="CheckCircle2" class="w-4 h-4 mt-0.5 shrink-0"></lucide-icon>
+              <div class="leading-5">Perfil actualizado.</div>
+            </div>
+          }
+
+          @if (!isEditing()) {
+            <!-- Read view -->
+            <dl class="divide-y divide-hairline/60">
+              <div class="flex items-center justify-between py-3">
+                <dt class="text-eyebrow uppercase text-ink-dim">Nombre</dt>
+                <dd class="text-body text-ink">{{ u.firstName }} {{ u.lastName }}</dd>
+              </div>
+              <div class="flex items-center justify-between py-3">
+                <dt class="text-eyebrow uppercase text-ink-dim">Email</dt>
+                <dd class="text-body text-ink flex items-center gap-2">
+                  <lucide-icon [img]="Mail" class="w-3.5 h-3.5 text-ink-dim"></lucide-icon>
+                  {{ u.email }}
+                </dd>
+              </div>
+            </dl>
+
+            @if (canEdit()) {
+              <div class="flex justify-end mt-6 pt-4 border-t border-hairline/80">
+                <button type="button" (click)="startEdit()" class="btn-brand">
+                  <lucide-icon [img]="Pencil" class="w-4 h-4"></lucide-icon>
+                  Editar datos
+                </button>
+              </div>
+            } @else {
+              <p class="mt-6 pt-4 border-t border-hairline/80 text-meta text-ink-dim">
+                Para cambiar tu nombre o email, contacta a tu gimnasio.
+              </p>
+            }
+          } @else {
+            <!-- Edit form -->
+            @if (saveError()) {
+              <div class="alert-error mb-4" role="alert">
+                <lucide-icon [img]="AlertTriangle" class="w-4 h-4 mt-0.5 shrink-0"></lucide-icon>
+                <div class="leading-5">{{ saveError() }}</div>
+              </div>
+            }
+
+            <div class="space-y-4">
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="field-label">Nombre <span class="text-accent-bright">*</span></label>
+                  <input type="text" [(ngModel)]="firstName" class="field"/>
+                </div>
+                <div>
+                  <label class="field-label">Apellido <span class="text-accent-bright">*</span></label>
+                  <input type="text" [(ngModel)]="lastName" class="field"/>
+                </div>
+              </div>
+              <div>
+                <label class="field-label">Email <span class="text-accent-bright">*</span></label>
+                <input type="email" [(ngModel)]="email" class="field"/>
+              </div>
+            </div>
+
+            <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-hairline/80">
+              <button type="button" (click)="cancelEdit()" [disabled]="isSaving()" class="btn-ghost">Cancelar</button>
+              <button type="button" (click)="save()" [disabled]="isSaving()" class="btn-brand">
+                @if (isSaving()) {
+                  <span class="spinner-sm text-on-accent/70"></span>
+                  Guardando...
+                } @else {
+                  Guardar cambios
+                }
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  </div>
+</div>

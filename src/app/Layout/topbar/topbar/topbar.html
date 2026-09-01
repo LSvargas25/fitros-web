@@ -1,0 +1,215 @@
+<header
+  class="h-16 bg-white/80 backdrop-blur-xl border-b border-black/5
+         flex items-center px-6 gap-4 sticky top-0 z-40">
+
+  <div class="flex items-center gap-3 min-w-0">
+
+    <button
+      (click)="menuClick.emit()"
+      class="lg:hidden p-2 rounded-lg hover:bg-black/5 transition">
+      <lucide-icon name="menu" class="w-5 h-5"></lucide-icon>
+    </button>
+
+    <div class="min-w-0">
+      <h1 class="text-lg font-semibold text-slate-500 truncate">
+        {{ title() }}
+      </h1>
+
+      <p class="text-xs text-slate-500 truncate" *ngIf="subtitle()">
+        {{ subtitle() }}
+      </p>
+    </div>
+  </div>
+
+  <div class="flex-1 flex justify-center" *ngIf="showSearch()">
+    <div class="group relative w-full max-w-xl transition">
+
+      <lucide-icon
+        name="search"
+        class="absolute left-3 top-1/2 -translate-y-1/2
+               w-4 h-4 text-slate-400 group-focus-within:text-[#C19A6B]">
+      </lucide-icon>
+
+      <input
+        type="text"
+        [ngModel]="searchTerm()"
+        (ngModelChange)="setSearch($event)"
+        (keyup.enter)="onSearch()"
+        placeholder="Search users, routines, exercises..."
+        class="w-full pl-10 pr-4 py-2.5
+               bg-[#F5F1E6]
+               border border-black/10
+               rounded-xl
+               text-sm
+               focus:outline-none
+               focus:ring-2 focus:ring-[#C19A6B]/40
+               focus:border-[#C19A6B]
+               transition"
+      />
+
+      <kbd
+        class="hidden md:block absolute right-3 top-1/2 -translate-y-1/2
+               text-[10px] text-slate-400 border border-black/10
+               rounded px-1.5 py-0.5">
+        ⌘K
+      </kbd>
+
+    </div>
+  </div>
+
+  <div class="flex items-center gap-3">
+
+    <button
+      (click)="toggleSearch()"
+      class="lg:hidden p-2 rounded-lg hover:bg-black/5 transition">
+      <lucide-icon name="search" class="w-5 h-5"></lucide-icon>
+    </button>
+
+    <!-- Bell + notification panel -->
+    <div class="relative">
+      <button
+        class="relative p-2 rounded-lg hover:bg-black/5 transition"
+        (click)="onBellClick()">
+
+        <lucide-icon name="bell" class="w-5 h-5 text-black"></lucide-icon>
+
+        @if (notificationCount() > 0) {
+          <span
+            class="absolute -top-1 -right-1
+                   bg-red-500 text-white text-[10px]
+                   min-w-[18px] h-[18px] px-1
+                   rounded-full flex items-center justify-center
+                   animate-badge-pop">
+            {{ notificationCount() }}
+          </span>
+        }
+      </button>
+
+      <!-- Notification panel -->
+      @if (showNotifPanel()) {
+        <div class="absolute right-0 top-12 w-80 bg-white rounded-xl shadow-xl border border-black/5
+                    py-2 z-50 max-h-[420px] flex flex-col"
+             (click)="$event.stopPropagation()">
+
+          <div class="flex items-center justify-between px-4 py-2 border-b border-stone-100">
+            <span class="text-xs font-bold text-[#1e3d59] uppercase tracking-wider">Notifications</span>
+            <button (click)="closeNotifPanel()"
+                    class="w-6 h-6 rounded flex items-center justify-center text-stone-400 hover:bg-stone-100 transition-colors">
+              <lucide-icon name="x" class="w-3.5 h-3.5"></lucide-icon>
+            </button>
+          </div>
+
+          <div class="overflow-y-auto flex-1">
+            @if (notifications().length === 0) {
+              <p class="text-xs text-stone-400 text-center py-8">All caught up!</p>
+            }
+            @for (notif of notifications(); track notif.id) {
+              <div class="flex items-start gap-3 px-4 py-3 hover:bg-[#F5EFE6]/60 cursor-pointer transition-colors border-b border-stone-50 last:border-0"
+                   (click)="onNotifClick(notif)">
+                <div class="w-2 h-2 rounded-full bg-[#C6A969] mt-1.5 shrink-0"></div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-xs font-semibold text-[#1e3d59] truncate">{{ notif.title }}</p>
+                  <p class="text-[11px] text-stone-500 mt-0.5 line-clamp-2">{{ notif.message }}</p>
+                  <p class="text-[10px] text-stone-400 mt-1">{{ notif.createdAt | date:'short' }}</p>
+                </div>
+                <button (click)="onDeleteNotif(notif, $event)"
+                        class="w-5 h-5 rounded flex items-center justify-center text-stone-300
+                               hover:text-red-400 hover:bg-red-50 transition-colors shrink-0 mt-0.5"
+                        title="Dismiss">
+                  <lucide-icon name="x" class="w-3 h-3"></lucide-icon>
+                </button>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+
+    <div class="relative flex items-center gap-3 pl-2 border-l border-black/5">
+
+      <div class="hidden sm:block text-right">
+        <p class="text-sm font-medium text-slate-800 leading-none">
+          {{ userName() }}
+        </p>
+        <p class="text-xs text-slate-500 leading-none">
+          {{ userRole() }}
+        </p>
+      </div>
+
+      <button
+        (click)="toggleDropdown()"
+        class="relative w-9 h-9 rounded-full overflow-hidden
+               ring-2 ring-transparent hover:ring-[#C19A6B]/40
+               transition">
+
+        <ng-container *ngIf="userAvatarUrl() && !avatarError(); else initialsAvatar">
+          <img
+            [src]="userAvatarUrl()!"
+            (error)="onAvatarError()"
+            class="w-full h-full object-cover" />
+        </ng-container>
+
+        <ng-template #initialsAvatar>
+          <div
+            class="w-full h-full
+                   bg-gradient-to-br from-[#C19A6B] to-[#a67c52]
+                   text-white text-sm font-semibold
+                   flex items-center justify-center">
+            {{ userInitials() }}
+          </div>
+        </ng-template>
+
+      </button>
+
+    <div
+  *ngIf="dropdownOpen()"
+  class="absolute right-0 top-12 w-56
+         bg-white rounded-xl shadow-xl border border-black/5
+         py-2 animate-dropdown">
+
+  <!-- Profile -->
+  <button
+    (click)="onProfileClick()"
+    class="w-full text-left px-4 py-2 text-sm
+           text-gray-800 hover:bg-black/5
+           transition flex items-center gap-2">
+    <lucide-icon
+      name="user"
+      class="w-4 h-4 text-gray-700">
+    </lucide-icon>
+    <span class="font-medium">Profile</span>
+  </button>
+
+  <!-- Change photo -->
+  <button
+    (click)="onChangeAvatar()"
+    class="w-full text-left px-4 py-2 text-sm
+           text-gray-800 hover:bg-black/5
+           transition flex items-center gap-2">
+    <lucide-icon
+      name="image"
+      class="w-4 h-4 text-gray-700">
+    </lucide-icon>
+    <span class="font-medium">Change photo</span>
+  </button>
+
+  <!-- Logout -->
+  <button
+    (click)="onLogout()"
+    class="w-full text-left px-4 py-2 text-sm
+           text-red-600 hover:bg-red-50
+           transition flex items-center gap-2">
+    <lucide-icon
+      name="log-out"
+      class="w-4 h-4 text-red-600">
+    </lucide-icon>
+    <span class="font-medium">Logout</span>
+  </button>
+
+</div>
+
+    </div>
+
+  </div>
+
+</header>

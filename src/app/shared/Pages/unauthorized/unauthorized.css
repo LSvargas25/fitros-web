@@ -1,0 +1,99 @@
+:host {
+  display: block;
+  min-height: 100%;
+}
+
+.unauth-wrapper {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(212, 175, 55, 0.08), transparent 40%),
+    radial-gradient(circle at 80% 80%, rgba(120, 117, 105, 0.12), transparent 40%),
+    #0f0f10;
+}
+
+.unauth-card {
+  width: 100%;
+  max-width: 420px;
+  padding: 40px 32px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(212, 175, 55, 0.08) inset;
+  text-align: center;
+}
+
+.unauth-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 18px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(212, 175, 55, 0.12);
+  color: #d4af37;
+}
+
+.unauth-icon lucide-icon {
+  width: 28px;
+  height: 28px;
+}
+
+.unauth-title {
+  margin: 0 0 8px;
+  font-size: 26px;
+  font-weight: 600;
+  color: #ffffff;
+  letter-spacing: 0.2px;
+}
+
+.unauth-subtitle {
+  margin: 0 0 28px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.unauth-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.btn-primary,
+.btn-secondary {
+  height: 40px;
+  padding: 0 18px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.btn-primary {
+  border: 1px solid rgba(212, 175, 55, 0.6);
+  background: linear-gradient(135deg, #d4af37, #f1d67a);
+  color: #1a1a1a;
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(212, 175, 55, 0.35);
+}
+
+.btn-secondary {
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.06);
+}

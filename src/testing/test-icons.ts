@@ -1,0 +1,80 @@
+import { importProvidersFrom, Provider, EnvironmentProviders } from '@angular/core';
+import {
+  LucideAngularModule,
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  AlertTriangle,
+  Loader2,
+  ShieldCheck,
+  Settings,
+  ChevronDown,
+  ChevronUp,
+  Menu,
+  Search,
+  Bell,
+  User,
+  LogOut,
+  Camera,
+  Image,
+  PanelLeftClose,
+  Plus,
+  Scale,
+  Percent,
+  Dumbbell,
+  Ruler,
+  Calendar,
+  History,
+  TrendingUp,
+  TrendingDown,
+  ChartLine,
+  Zap,
+  CheckCircle2,
+  XCircle,
+} from 'lucide-angular';
+
+/**
+ * The same Lucide icon set registered by the app in `app.config.ts`.
+ * Standalone component specs that render icons must provide this, otherwise
+ * `<lucide-icon>` throws "icon has not been provided by any available icon providers".
+ */
+export function provideTestIcons(): (Provider | EnvironmentProviders)[] {
+  return [
+    importProvidersFrom(
+      LucideAngularModule.pick({
+        Mail,
+        Lock,
+        Eye,
+        EyeOff,
+        AlertTriangle,
+        Loader2,
+        ShieldCheck,
+        Settings,
+        ChevronDown,
+        ChevronUp,
+        Menu,
+        Search,
+        Bell,
+        User,
+        LogOut,
+        Camera,
+        Image,
+        PanelLeftClose,
+        Plus,
+        Scale,
+        Percent,
+        Dumbbell,
+        Ruler,
+        Calendar,
+        History,
+        TrendingUp,
+        TrendingDown,
+        ChartLine,
+        Zap,
+        CheckCircle2,
+        XCircle,
+      }),
+    ),
+  ];
+}

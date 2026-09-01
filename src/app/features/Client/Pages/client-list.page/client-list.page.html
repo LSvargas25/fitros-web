@@ -1,0 +1,190 @@
+<div class="h-full w-full overflow-y-auto bg-[#F5EFE6] font-dm text-[#1e3d59] px-8 py-7">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between flex-wrap gap-4 mb-6">
+    <div>
+      <h1 class="font-syne text-2xl font-extrabold tracking-tight text-[#1e3d59]">
+        Clients
+      </h1>
+      <p class="text-xs text-stone-400 mt-1">All clients across every gym</p>
+    </div>
+
+    <button (click)="openCreate()"
+            class="flex items-center gap-2 bg-[#8B7355] hover:bg-[#7a6347] text-white text-sm
+                   font-semibold px-4 py-2.5 rounded-xl shadow-md transition-all duration-200">
+      <lucide-icon [img]="Plus" [size]="14" [strokeWidth]="2.5"></lucide-icon>
+      New Client
+    </button>
+  </div>
+
+  <!-- Filters -->
+  <div class="bg-white border border-stone-200 rounded-2xl p-4 shadow-sm mb-6 flex flex-wrap gap-3 items-center">
+    <!-- Search -->
+    <div class="flex items-center gap-2 border border-stone-200 rounded-xl px-3 py-2
+                focus-within:border-[#8B7355] transition-colors bg-white flex-1 min-w-[200px]">
+      <lucide-icon [img]="Search" [size]="14" color="#8B7355" [strokeWidth]="2"></lucide-icon>
+      <input [ngModel]="searchValue()" (ngModelChange)="searchValue.set($event)"
+             placeholder="Search by name or email..."
+             class="flex-1 text-sm text-[#1e3d59] outline-none bg-transparent placeholder:text-stone-300"/>
+    </div>
+
+    <!-- Gym filter -->
+    <div class="flex items-center gap-2 border border-stone-200 rounded-xl px-3 py-2
+                focus-within:border-[#8B7355] transition-colors bg-white min-w-[160px]">
+      <lucide-icon [img]="Filter" [size]="14" color="#8B7355" [strokeWidth]="2"></lucide-icon>
+      <select [ngModel]="gymFilter()" (ngModelChange)="gymFilter.set($event)"
+              class="text-sm text-[#1e3d59] outline-none bg-transparent">
+        <option value="">All Gyms</option>
+        @for (gym of gyms(); track gym.id) {
+          <option [value]="gym.id">{{ gym.name }}</option>
+        }
+      </select>
+    </div>
+
+    <!-- Status filter -->
+    <div class="flex items-center gap-2 border border-stone-200 rounded-xl px-3 py-2
+                focus-within:border-[#8B7355] transition-colors bg-white min-w-[140px]">
+      <select [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event)"
+              class="text-sm text-[#1e3d59] outline-none bg-transparent">
+        <option value="">All Statuses</option>
+        <option value="Active">Active</option>
+        <option value="Inactive">Inactive</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Action error alert -->
+  @if (actionError()) {
+    <div class="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-600 flex items-center justify-between">
+      <span>{{ actionError() }}</span>
+      <button (click)="actionError.set(null)" class="ml-4 text-red-400 hover:text-red-600 font-bold">&times;</button>
+    </div>
+  }
+
+  <!-- Table -->
+  <div class="bg-white border border-stone-200 rounded-2xl shadow-sm overflow-hidden">
+    <div class="flex items-center gap-2.5 p-5 border-b border-stone-100">
+      <div class="w-9 h-9 rounded-xl bg-[#8B7355]/10 flex items-center justify-center">
+        <lucide-icon [img]="Users" [size]="18" color="#8B7355" [strokeWidth]="2"></lucide-icon>
+      </div>
+      <div>
+        <h2 class="font-syne font-bold text-sm text-[#1e3d59]">All Clients</h2>
+        <p class="text-[11px] text-stone-400">{{ filteredClients.length }} loaded</p>
+      </div>
+    </div>
+
+    @if (isLoading() && clients().length === 0) {
+      <div class="flex items-center justify-center h-40">
+        <div class="w-7 h-7 border-3 border-[#8B7355] border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    } @else if (error()) {
+      <div class="p-8 text-center text-sm text-red-500" role="alert">{{ error() }}</div>
+    } @else if (filteredClients.length === 0) {
+      <div class="p-8 text-center text-sm text-stone-400">No clients found.</div>
+    } @else {
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-stone-100 bg-[#F5EFE6]">
+              <th class="text-left px-5 py-3 text-[11px] uppercase tracking-wider text-stone-400 font-semibold">Name</th>
+              <th class="text-left px-5 py-3 text-[11px] uppercase tracking-wider text-stone-400 font-semibold">Email</th>
+              <th class="text-left px-5 py-3 text-[11px] uppercase tracking-wider text-stone-400 font-semibold">Gym</th>
+              <th class="text-left px-5 py-3 text-[11px] uppercase tracking-wider text-stone-400 font-semibold">Coach</th>
+              <th class="text-left px-5 py-3 text-[11px] uppercase tracking-wider text-stone-400 font-semibold">Status</th>
+              <th class="text-left px-5 py-3 text-[11px] uppercase tracking-wider text-stone-400 font-semibold">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-stone-100">
+            @for (client of filteredClients; track client.id) {
+              <tr class="hover:bg-[#F5EFE6]/50 transition-colors duration-150">
+                <td class="px-5 py-3.5">
+                  <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-full bg-[#C6A969]/20 flex items-center justify-center
+                                font-syne font-bold text-xs text-[#8B7355]">
+                      {{ client.firstName.charAt(0).toUpperCase() }}{{ client.lastName.charAt(0).toUpperCase() }}
+                    </div>
+                    <span class="font-medium text-[#1e3d59]">{{ client.firstName }} {{ client.lastName }}</span>
+                  </div>
+                </td>
+                <td class="px-5 py-3.5 text-stone-500 text-xs">{{ client.email }}</td>
+                <td class="px-5 py-3.5 text-xs">
+                  <span [class]="client.gymId ? 'text-[#1e3d59]' : 'text-stone-400 italic'">
+                    {{ getGymName(client.gymId) }}
+                  </span>
+                </td>
+                <td class="px-5 py-3.5 text-xs">
+                  <span [class]="client.coachName ? 'text-[#1e3d59]' : 'text-stone-400 italic'">
+                    {{ client.coachName ?? '—' }}
+                  </span>
+                </td>
+                <td class="px-5 py-3.5">
+                  <span class="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full"
+                        [class]="client.status === 'Active' ? 'bg-[#8B7355]/10 text-[#8B7355]' : 'bg-stone-100 text-stone-400'">
+                    {{ client.status }}
+                  </span>
+                </td>
+                <td class="px-5 py-3.5">
+                  <div class="flex items-center gap-1.5">
+                    <!-- Edit -->
+                    <button (click)="openEdit(client)"
+                            class="w-7 h-7 rounded-lg flex items-center justify-center text-stone-400
+                                   hover:bg-[#8B7355]/10 hover:text-[#8B7355] transition-colors"
+                            title="Edit">
+                      <lucide-icon [img]="Pencil" [size]="13" [strokeWidth]="2"></lucide-icon>
+                    </button>
+                    <!-- Deactivate / Activate -->
+                    @if (client.status === 'Active') {
+                      <button (click)="toggleActive(client)"
+                              class="w-7 h-7 rounded-lg flex items-center justify-center text-stone-400
+                                     hover:bg-amber-50 hover:text-amber-600 transition-colors"
+                              title="Deactivate">
+                        <lucide-icon [img]="UserX" [size]="13" [strokeWidth]="2"></lucide-icon>
+                      </button>
+                    } @else {
+                      <button (click)="toggleActive(client)"
+                              class="w-7 h-7 rounded-lg flex items-center justify-center text-stone-400
+                                     hover:bg-green-50 hover:text-green-600 transition-colors"
+                              title="Activate">
+                        <lucide-icon [img]="UserCheck" [size]="13" [strokeWidth]="2"></lucide-icon>
+                      </button>
+                    }
+                    <!-- Hard delete -->
+                    <button (click)="hardDelete(client)"
+                            class="w-7 h-7 rounded-lg flex items-center justify-center text-stone-400
+                                   hover:bg-red-50 hover:text-red-500 transition-colors"
+                            title="Delete permanently">
+                      <lucide-icon [img]="Trash2" [size]="13" [strokeWidth]="2"></lucide-icon>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+    }
+  </div>
+</div>
+
+<!-- Create modal -->
+@if (showCreateModal()) {
+  <app-create-user-modal
+    userType="client"
+    [gyms]="activeGyms()"
+    (userCreated)="onClientCreated()"
+    (cancelled)="closeCreate()">
+  </app-create-user-modal>
+}
+
+<!-- Edit modal -->
+@if (editingClient()) {
+  <app-edit-user-modal
+    [userId]="editingClient()!.id"
+    [initialFirstName]="editingClient()!.firstName"
+    [initialLastName]="editingClient()!.lastName"
+    [initialEmail]="editingClient()!.email"
+    (updated)="onClientUpdated()"
+    (cancelled)="closeEdit()">
+  </app-edit-user-modal>
+}

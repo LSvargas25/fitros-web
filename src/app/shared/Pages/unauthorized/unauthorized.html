@@ -1,0 +1,23 @@
+<div class="unauth-wrapper">
+  <div class="unauth-card">
+    <div class="unauth-icon">
+      <lucide-icon name="shield-alert"></lucide-icon>
+    </div>
+
+    <h1 class="unauth-title">Access denied</h1>
+
+    <p class="unauth-subtitle">
+      You don’t have permission to view this resource.
+    </p>
+
+    <div class="unauth-actions">
+      <button class="btn-secondary" (click)="goBack()">
+        Close
+      </button>
+
+      <button class="btn-primary" (click)="goDashboard()">
+        Go to dashboard
+      </button>
+    </div>
+  </div>
+</div>

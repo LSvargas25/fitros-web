@@ -1,0 +1,238 @@
+@import "tailwindcss";
+
+/* =============================================================================
+   FitRos design system — "Cinematic Dark ✕ FitRos Gold"
+   Structure (type scale, spacing rhythm, gradient + motion treatment, depth)
+   is borrowed from the Cinematic Dark family (RunwayML / NVIDIA reference
+   DESIGN.md, rohitg00/awesome-claude-design). The palette stays ours:
+   slate-950/900/800 canvas + gold brand accent.
+   Full rationale + usage: /DESIGN_SYSTEM.md
+   ---------------------------------------------------------------------------
+   All tokens below are ADDITIVE Tailwind v4 theme entries — namespaced so they
+   never override a stock utility. `bg-canvas`, `text-ink`, `rounded-card`,
+   `shadow-card`, `ease-cine`, `text-h1`, … are generated from these.
+   ========================================================================== */
+@theme {
+  /* ── Canvas & surfaces ──────────────────────────────────────────────────── */
+  --color-canvas: #020617;          /* slate-950 — page background */
+  --color-canvas-raised: #0b1120;   /* halfway to slate-900 */
+  --color-surface: #0f172a;         /* slate-900 — cards, modals */
+  --color-surface-raised: #1e293b;  /* slate-800 — nested controls */
+
+  /* ── Text ──────────────────────────────────────────────────────────────── */
+  --color-ink: #f1f5f9;             /* slate-100 — primary */
+  --color-ink-muted: #94a3b8;       /* slate-400 — secondary */
+  --color-ink-dim: #64748b;         /* slate-500 — labels, meta */
+  --color-ink-faint: #475569;       /* slate-600 — placeholder */
+
+  /* ── Lines ─────────────────────────────────────────────────────────────── */
+  --color-hairline: #1e293b;        /* slate-800 — default border */
+  --color-hairline-strong: #334155; /* slate-700 — emphasised border */
+
+  /* ── Brand accent (gold — unchanged from the previous palette) ──────────── */
+  --color-accent: #eab308;          /* yellow-500 — fills, focus ring */
+  --color-accent-bright: #facc15;   /* yellow-400 — icons, text accent */
+  --color-accent-deep: #f59e0b;     /* amber-500 — gradient terminus */
+  --color-on-accent: #0b0f19;       /* near-black text on gold fills */
+
+  /* ── Status ────────────────────────────────────────────────────────────── */
+  --color-positive: #34d399;
+  --color-positive-bright: #6ee7b7;
+  --color-critical: #fca5a5;
+  --color-critical-bright: #fecaca;
+
+  /* ── Typography — Cinematic Dark "big jump" scale ──────────────────────── */
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  --text-eyebrow: 0.6875rem;        /* 11px — tracked uppercase labels */
+  --text-eyebrow--line-height: 1rem;
+  --text-eyebrow--letter-spacing: 0.14em;
+  --text-eyebrow--font-weight: 600;
+
+  --text-meta: 0.75rem;             /* 12px — table meta, captions */
+  --text-meta--line-height: 1rem;
+
+  --text-body: 0.875rem;            /* 14px — app body / controls */
+  --text-body--line-height: 1.25rem;
+
+  --text-h2: 1rem;                  /* 16px — card titles */
+  --text-h2--line-height: 1.5rem;
+  --text-h2--font-weight: 600;
+
+  --text-h1: 1.5rem;               /* 24px — page titles */
+  --text-h1--line-height: 2rem;
+  --text-h1--letter-spacing: -0.02em;
+  --text-h1--font-weight: 600;
+
+  --text-display: 3rem;            /* 48px — hero numerals / empty-state stats */
+  --text-display--line-height: 1.05;
+  --text-display--letter-spacing: -0.02em;
+  --text-display--font-weight: 600;
+
+  /* ── Radii — Runway side of cinematic (generous, not hard-edged) ───────── */
+  --radius-field: 1rem;            /* 16px — inputs, small buttons, chips */
+  --radius-card: 1.5rem;          /* 24px — cards, modals */
+  --radius-pill: 9999px;
+
+  /* ── Elevation & motion ──────────────────────────────────────────────── */
+  --shadow-card: 0 24px 64px -16px rgb(0 0 0 / 0.6);
+  --shadow-btn: 0 10px 30px -12px rgb(212 175 55 / 0.55);
+  --shadow-glow: 0 0 16px rgb(234 179 8 / 0.35);
+
+  --ease-cine: cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* Raw values that are not utilities (gradients, timings). */
+:root {
+  --gradient-brand: linear-gradient(135deg, #facc15 0%, #f59e0b 100%);
+  --gradient-hairline: linear-gradient(
+    90deg,
+    rgb(234 179 8 / 0.8) 0%,
+    rgb(251 191 36 / 0.8) 50%,
+    rgb(234 179 8 / 0.8) 100%
+  );
+  --gradient-scrim: linear-gradient(180deg, transparent 0%, rgb(2 6 23 / 0.85) 100%);
+  --dur-quick: 150ms;
+  --dur-base: 200ms;
+  --dur-slow: 300ms;
+}
+
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+}
+body {
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* =============================================================================
+   Component layer — the repeated Tailwind clusters, centralised.
+   Each class reproduces the look the 7 pages already ship; the cinematic
+   remix shows up as: 135° brand gradient, tokenised depth, ease-cine motion,
+   a subtle hover lift on the primary button (the one place lift is allowed).
+   ========================================================================== */
+@layer components {
+  /* Page scaffold ------------------------------------------------------------ */
+  .page-shell {
+    @apply min-h-full w-full bg-canvas text-ink px-4 py-8 sm:px-8;
+  }
+  .page-eyebrow {
+    @apply text-eyebrow uppercase text-ink-dim;
+  }
+  .page-title {
+    @apply text-h1 text-ink;
+  }
+  .page-title-accent {
+    @apply text-accent-bright;
+  }
+  .page-subtitle {
+    @apply mt-1 text-body text-ink-muted;
+  }
+
+  /* Surfaces -------------------------------------------------------------- */
+  .card {
+    @apply rounded-card border border-hairline/80 bg-surface/55 backdrop-blur-xl
+           shadow-card ring-1 ring-white/5 overflow-hidden;
+  }
+  .card-flat {
+    @apply rounded-card border border-hairline/80 bg-surface/55;
+  }
+  /* the thin gradient strip along the top edge of a card */
+  .card-hairline {
+    @apply h-1 w-full;
+    background-image: var(--gradient-hairline);
+  }
+  .card-header {
+    @apply flex items-center gap-2.5 p-5 border-b border-hairline/80;
+  }
+  .card-header-icon {
+    @apply w-9 h-9 rounded-xl bg-accent/10 flex items-center justify-center text-accent-bright;
+  }
+
+  /* Buttons ------------------------------------------------------------------ */
+  .btn-brand {
+    @apply inline-flex items-center justify-center gap-2 rounded-field px-4 py-2.5
+           text-body font-semibold text-on-accent shadow-btn
+           transition duration-200 ease-cine
+           hover:brightness-110 hover:-translate-y-px active:translate-y-0 active:scale-[0.99]
+           disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0;
+    background-image: var(--gradient-brand);
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-field border border-hairline
+           px-4 py-2.5 text-meta font-semibold text-ink-muted
+           transition duration-200 ease-cine hover:bg-surface-raised
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-icon {
+    @apply w-8 h-8 rounded-lg flex items-center justify-center text-ink-muted
+           transition-colors duration-150 ease-cine
+           hover:bg-accent/10 hover:text-accent-bright
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-icon-danger {
+    @apply hover:bg-red-500/10 hover:text-red-400;
+  }
+
+  /* Form controls --------------------------------------------------------- */
+  .field-label {
+    @apply block text-meta font-medium text-ink-muted mb-1;
+  }
+  .field {
+    @apply w-full rounded-field border border-hairline bg-canvas px-4 py-2.5
+           text-body text-ink outline-none transition duration-200 ease-cine
+           placeholder:text-ink-faint
+           focus:border-accent focus:ring-2 focus:ring-accent/20;
+  }
+
+  /* Data table --------------------------------------------------------------- */
+  .table-head-cell {
+    @apply text-left px-5 py-3 text-eyebrow uppercase text-ink-dim;
+  }
+  .table-row {
+    @apply hover:bg-surface-raised/40 transition-colors duration-150 ease-cine;
+  }
+
+  /* Feedback -------------------------------------------------------------- */
+  .alert-error {
+    @apply rounded-field border border-red-900/50 bg-red-900/25 p-3 text-body text-red-200 flex gap-2;
+  }
+  .alert-success {
+    @apply rounded-field border border-emerald-900/50 bg-emerald-900/25 p-3 text-body text-emerald-200 flex gap-2;
+  }
+  .badge-accent {
+    @apply inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide
+           px-2 py-0.5 rounded-pill bg-accent/10 text-accent-bright;
+  }
+  .badge-muted {
+    @apply inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide
+           px-2 py-0.5 rounded-pill bg-surface-raised text-ink-dim;
+  }
+  .spinner {
+    @apply border-2 border-accent border-t-transparent rounded-full animate-spin;
+  }
+  .spinner-sm {
+    @apply w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin;
+  }
+
+  /* Modal --------------------------------------------------------------- */
+  .modal-scrim {
+    @apply absolute inset-0 bg-black/70 backdrop-blur-sm;
+  }
+  .modal-panel {
+    @apply relative w-full max-w-lg rounded-card border border-hairline/80 bg-surface
+           shadow-card ring-1 ring-white/5 overflow-hidden;
+  }
+}

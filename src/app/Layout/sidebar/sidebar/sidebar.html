@@ -1,0 +1,148 @@
+<aside
+  (mouseenter)="onSidebarEnter()"
+  (mouseleave)="onSidebarLeave()"
+  class="h-screen shrink-0 bg-[#787569] text-white flex flex-col shadow-xl relative z-40
+         transition-[width] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]
+         will-change-[width]"
+  [class.sidebar-floating]="!pinned"
+  [style.width.px]="sidebarWidth"
+>
+  <div class="flex flex-col items-center justify-center py-8 border-b border-white/10">
+    <div class="w-20 h-20 rounded-full bg-white flex items-center justify-center shadow-lg overflow-hidden ring-2 ring-white/20">
+      <img src="/images/fitros-logo.png" alt="FitRos" class="w-16 h-16 object-contain" />
+    </div>
+
+    <h1 *ngIf="!collapsed" class="mt-4 text-xl font-bold tracking-wide transition-all duration-200">
+      FitRos
+    </h1>
+  </div>
+
+  <nav class="flex-1 px-3 py-6 overflow-y-auto">
+    <div class="space-y-1">
+      <ng-container *ngFor="let item of visibleItems">
+
+        <!-- DIVIDER (visibleItems already drops leading/trailing/doubled ones) -->
+        <div *ngIf="item.kind === 'divider'" class="my-6 border-t border-white/10"></div>
+
+        <!-- LINK -->
+        <a
+         *ngIf="item.kind === 'link' && canSee(item.permission)"
+          [routerLink]="item.route"
+          routerLinkActive="bg-white/15 text-white sidebar-active-glow"
+          [routerLinkActiveOptions]="{ exact: true }"
+          class="relative flex items-center gap-3 px-4 py-3 rounded-xl
+                 text-white/90 font-medium hover:bg-white/10 hover:text-white
+                 transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-white/30"
+          [class.justify-center]="collapsed"
+          [class.px-2]="collapsed"
+          [class.text-amber-300]="item.route === '/owner-admins'"
+        >
+          <span
+            class="absolute left-0 top-2 bottom-2 w-1 rounded-r-full"
+            [class.bg-white/70]="item.route !== '/owner-admins'"
+            [class.bg-amber-300]="item.route === '/owner-admins'"
+            *ngIf="isActiveStartsWith(item.activeStartsWith ?? item.route) && !collapsed"
+          ></span>
+
+          <span class="truncate" *ngIf="!collapsed">{{ item.label }}</span>
+        </a>
+
+        <!-- GROUP -->
+        <div
+          *ngIf="item.kind === 'group' && canSee(item.permission)"
+          class="mt-2"
+          (mouseenter)="setHover(item.key, true)"
+          (mouseleave)="setHover(item.key, false)"
+        >
+          <button
+            type="button"
+            (click)="toggleGroup(item.key)"
+            class="relative w-full flex items-center gap-3 px-4 py-3 rounded-xl
+                   text-white/90 font-medium text-left hover:bg-white/10 hover:text-white
+                   transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-white/30"
+            [class.bg-white/10]="isGroupActive(item) || isGroupHovered(item.key)"
+            [class.text-white]="isGroupActive(item)"
+            [class.ring-1]="isGroupHovered(item.key)"
+            [class.ring-white/20]="isGroupHovered(item.key)"
+            [class.justify-center]="collapsed"
+            [class.px-2]="collapsed"
+          >
+            <span
+              class="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-white/70"
+              *ngIf="isGroupActive(item) && !collapsed"
+            ></span>
+
+            <span class="truncate" *ngIf="!collapsed">{{ item.label }}</span>
+
+            <span class="ml-auto flex items-center" *ngIf="!collapsed">
+              <lucide-icon
+                name="chevron-down"
+                class="w-4 h-4 transition-transform duration-200"
+                [class.rotate-180]="isGroupOpen(item.key)"
+              ></lucide-icon>
+            </span>
+          </button>
+
+          <div
+            *ngIf="!collapsed"
+            class="flex flex-col gap-1 pl-6 pr-1 overflow-hidden transition-[max-height,opacity,margin]
+                   duration-250 ease-out"
+            [style.maxHeight]="isGroupOpen(item.key) ? '260px' : '0px'"
+            [class.opacity-100]="isGroupOpen(item.key)"
+            [class.opacity-0]="!isGroupOpen(item.key)"
+            [class.mt-1]="isGroupOpen(item.key)"
+          >
+            <ng-container *ngFor="let sub of item.items">
+              <a
+            *ngIf="canSee(sub.permission)"
+                [routerLink]="sub.route"
+                routerLinkActive="bg-white/15 text-white sidebar-active-glow"
+                class="relative flex items-center px-4 py-2 rounded-lg text-sm transition-all"
+                [ngClass]="getSubItemClass(sub.accent)"
+              >
+                <span
+                  class="absolute left-2 top-2 bottom-2 w-1 rounded-full"
+                  [class.bg-white/70]="sub.accent !== 'success' && sub.accent !== 'warning'"
+                  [class.bg-emerald-300]="sub.accent === 'success'"
+                  [class.bg-amber-300]="sub.accent === 'warning'"
+                  *ngIf="isActiveStartsWith(sub.activeStartsWith ?? sub.route)"
+                ></span>
+                {{ sub.label }}
+              </a>
+            </ng-container>
+          </div>
+        </div>
+
+      </ng-container>
+    </div>
+  </nav>
+
+  <div class="p-4 border-t border-white/10 flex items-center"
+       [class.justify-between]="!collapsed"
+       [class.justify-center]="collapsed">
+
+    <button
+      type="button"
+      (click)="toggleCollapsed()"
+      class="p-3 rounded-xl hover:bg-white/10 transition-all duration-200
+             flex items-center justify-center active:scale-95"
+      [title]="collapsed ? 'Expand sidebar' : 'Collapse sidebar'"
+    >
+      <lucide-icon
+        [name]="collapsed ? 'panel-left-open' : 'panel-left-close'"
+        class="w-5 h-5 text-white/80 transition-transform duration-300"
+        [class.rotate-180]="!collapsed"
+      ></lucide-icon>
+    </button>
+
+    <button
+      *ngIf="!collapsed"
+      (click)="requestLogout()"
+      class="p-3 rounded-xl hover:bg-red-500/20 transition-all duration-200 active:scale-95"
+      title="Logout"
+    >
+      <lucide-icon name="log-out" class="w-5 h-5 text-white/80"></lucide-icon>
+    </button>
+
+  </div>
+</aside>

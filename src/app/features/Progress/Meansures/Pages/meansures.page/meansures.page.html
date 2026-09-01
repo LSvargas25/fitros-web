@@ -1,0 +1,158 @@
+<div class="page-shell">
+
+  <!-- Header -->
+  <div class="max-w-4xl mx-auto mb-8">
+    <h1 class="page-title">Mis <span class="page-title-accent">Medidas</span></h1>
+    <p class="page-subtitle">Registra y consulta tu historial de medidas físicas</p>
+  </div>
+
+  <div class="max-w-4xl mx-auto grid grid-cols-1 lg:grid-cols-5 gap-6">
+
+    <!-- Form -->
+    <div class="lg:col-span-2">
+      <div class="card">
+        <div class="card-hairline"></div>
+
+        <div class="p-6">
+          <div class="flex items-center gap-2 mb-5">
+            <lucide-icon name="plus" class="w-5 h-5 text-accent-bright"></lucide-icon>
+            <h2 class="text-h2 text-ink">Nueva medida</h2>
+          </div>
+
+          @if (saveError()) {
+            <div class="alert-error mb-4" role="alert">
+              <lucide-icon name="alert-triangle" class="w-4 h-4 mt-0.5 shrink-0"></lucide-icon>
+              <div class="leading-5">{{ saveError() }}</div>
+            </div>
+          }
+
+          <div class="space-y-4">
+            <div>
+              <label class="flex items-center gap-1.5 text-meta font-medium text-ink-muted mb-1" for="ms-date">
+                <lucide-icon name="calendar" class="w-3.5 h-3.5 text-ink-dim"></lucide-icon>
+                Fecha
+              </label>
+              <input id="ms-date" type="date" [ngModel]="recordedOn()" (ngModelChange)="recordedOn.set($event)"
+                     [min]="minDate" [max]="maxDate" class="field"/>
+            </div>
+
+            <div>
+              <label class="flex items-center gap-1.5 text-meta font-medium text-ink-muted mb-1" for="ms-weight">
+                <lucide-icon name="scale" class="w-3.5 h-3.5 text-accent-bright"></lucide-icon>
+                Peso (kg) <span class="text-accent-bright">*</span>
+              </label>
+              <input id="ms-weight" type="number" [ngModel]="weight()" (ngModelChange)="weight.set($event)" placeholder="80" class="field"/>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="flex items-center gap-1.5 text-meta font-medium text-ink-muted mb-1">
+                  <lucide-icon name="percent" class="w-3.5 h-3.5 text-ink-dim"></lucide-icon>
+                  % Grasa
+                </label>
+                <input type="number" [ngModel]="bodyFatPercentage()" (ngModelChange)="bodyFatPercentage.set($event)" placeholder="18" class="field"/>
+              </div>
+              <div>
+                <label class="flex items-center gap-1.5 text-meta font-medium text-ink-muted mb-1">
+                  <lucide-icon name="dumbbell" class="w-3.5 h-3.5 text-ink-dim"></lucide-icon>
+                  M. Muscular
+                </label>
+                <input type="number" [ngModel]="muscleMass()" (ngModelChange)="muscleMass.set($event)" placeholder="35" class="field"/>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <div>
+                <label class="flex items-center gap-1.5 text-meta font-medium text-ink-muted mb-1">
+                  <lucide-icon name="ruler" class="w-3.5 h-3.5 text-ink-dim"></lucide-icon>
+                  Cintura
+                </label>
+                <input type="number" [ngModel]="waist()" (ngModelChange)="waist.set($event)" placeholder="80" class="field px-3"/>
+              </div>
+              <div>
+                <label class="flex items-center gap-1.5 text-meta font-medium text-ink-muted mb-1">
+                  <lucide-icon name="ruler" class="w-3.5 h-3.5 text-ink-dim"></lucide-icon>
+                  Pecho
+                </label>
+                <input type="number" [ngModel]="chest()" (ngModelChange)="chest.set($event)" placeholder="100" class="field px-3"/>
+              </div>
+              <div>
+                <label class="flex items-center gap-1.5 text-meta font-medium text-ink-muted mb-1">
+                  <lucide-icon name="ruler" class="w-3.5 h-3.5 text-ink-dim"></lucide-icon>
+                  Brazos
+                </label>
+                <input type="number" [ngModel]="arms()" (ngModelChange)="arms.set($event)" placeholder="35" class="field px-3"/>
+              </div>
+            </div>
+
+            <button (click)="addMeasure()" [disabled]="isSaving()" class="btn-brand w-full py-3">
+              @if (isSaving()) {
+                <span class="spinner-sm w-4 h-4 text-on-accent/70"></span>
+                Guardando...
+              } @else {
+                <lucide-icon name="plus" class="w-4 h-4"></lucide-icon>
+                Registrar medida
+              }
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- History -->
+    <div class="lg:col-span-3">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-header-icon">
+            <lucide-icon name="history" class="w-4 h-4"></lucide-icon>
+          </div>
+          <div>
+            <h2 class="text-h2 text-ink">Historial</h2>
+            <p class="text-[11px] text-ink-dim">{{ measures().length }} registros</p>
+          </div>
+        </div>
+
+        @if (isLoading()) {
+          <div class="flex items-center justify-center h-40">
+            <div class="spinner w-7 h-7"></div>
+          </div>
+        } @else if (error()) {
+          <div class="p-8 text-center text-body text-red-300" role="alert">{{ error() }}</div>
+        } @else if (measures().length === 0) {
+          <div class="p-8 text-center text-body text-ink-dim">Aún no tienes medidas registradas.</div>
+        } @else {
+          <div class="overflow-x-auto">
+            <table class="w-full text-body">
+              <thead>
+                <tr class="border-b border-hairline/80">
+                  <th class="table-head-cell">Fecha</th>
+                  <th class="table-head-cell">Peso</th>
+                  <th class="table-head-cell">% Grasa</th>
+                  <th class="table-head-cell">M. Muscular</th>
+                  <th class="table-head-cell">Cintura</th>
+                  <th class="table-head-cell">Pecho</th>
+                  <th class="table-head-cell">Brazos</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-hairline/60">
+                @for (m of measures(); track m.id) {
+                  <tr class="table-row">
+                    <td class="px-5 py-3.5 text-ink-muted text-meta whitespace-nowrap">
+                      {{ m.recordedAt | date: 'dd/MM/yyyy HH:mm' }}
+                    </td>
+                    <td class="px-5 py-3.5 font-medium text-ink">{{ m.weight }} kg</td>
+                    <td class="px-5 py-3.5 text-ink-muted">{{ m.bodyFatPercentage }}%</td>
+                    <td class="px-5 py-3.5 text-ink-muted">{{ m.muscleMass }} kg</td>
+                    <td class="px-5 py-3.5 text-ink-muted">{{ m.waist }} cm</td>
+                    <td class="px-5 py-3.5 text-ink-muted">{{ m.chest }} cm</td>
+                    <td class="px-5 py-3.5 text-ink-muted">{{ m.arms }} cm</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</div>

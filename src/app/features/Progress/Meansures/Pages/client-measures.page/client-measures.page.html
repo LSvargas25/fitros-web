@@ -1,0 +1,118 @@
+<div class="page-shell">
+  <div class="max-w-4xl mx-auto">
+
+    <!-- Header -->
+    <div class="flex items-center gap-3 mb-6">
+      <div class="rounded-2xl bg-accent/10 p-2.5">
+        <lucide-icon [img]="Ruler" class="w-6 h-6 text-accent-bright"></lucide-icon>
+      </div>
+      <div>
+        <h1 class="page-title">Medidas del <span class="page-title-accent">Cliente</span></h1>
+        <p class="page-subtitle">Historial de medidas físicas registradas por el cliente.</p>
+      </div>
+    </div>
+
+    @if (clientsError()) {
+      <div class="alert-error mb-4" role="alert">
+        <lucide-icon [img]="AlertTriangle" class="w-4 h-4 mt-0.5 shrink-0"></lucide-icon>
+        <div class="leading-5">{{ clientsError() }}</div>
+      </div>
+    }
+
+    <!-- Client picker -->
+    <div class="mb-6">
+      <label class="field-label" for="cm-client">Cliente</label>
+      <select id="cm-client" [ngModel]="selectedClientId()"
+              (ngModelChange)="selectedClientId.set($event); onClientChange()" class="field">
+        <option value="">Selecciona un cliente...</option>
+        @for (c of clients(); track c.clientProfileId) {
+          <option [value]="c.clientProfileId">{{ c.firstName }} {{ c.lastName }} — {{ c.email }}</option>
+        }
+      </select>
+    </div>
+
+    @if (!selectedClientId()) {
+      <div class="card-flat p-10 text-center text-body text-ink-dim">
+        Elige un cliente para ver su historial de medidas.
+      </div>
+    } @else if (isLoading()) {
+      <div class="flex items-center justify-center h-40"><div class="spinner w-7 h-7"></div></div>
+    } @else if (error()) {
+      <div class="alert-error p-5" role="alert">
+        <lucide-icon [img]="AlertTriangle" class="w-5 h-5 mt-0.5 shrink-0"></lucide-icon>
+        <div class="leading-5">{{ error() }}</div>
+      </div>
+    } @else if (measures().length === 0) {
+      <div class="card-flat p-10 text-center text-body text-ink-dim">
+        Este cliente aún no tiene medidas registradas.
+      </div>
+    } @else {
+
+      <!-- Latest snapshot -->
+      @if (latest(); as l) {
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-5">
+          <div class="rounded-field bg-surface-raised/50 p-3 text-center">
+            <div class="text-h2 text-accent-bright">{{ l.weight }}</div>
+            <div class="text-eyebrow uppercase text-ink-dim">kg</div>
+          </div>
+          <div class="rounded-field bg-surface-raised/50 p-3 text-center">
+            <div class="text-h2 text-ink">{{ l.bodyFatPercentage }}</div>
+            <div class="text-eyebrow uppercase text-ink-dim">% grasa</div>
+          </div>
+          <div class="rounded-field bg-surface-raised/50 p-3 text-center">
+            <div class="text-h2 text-ink">{{ l.waist }}</div>
+            <div class="text-eyebrow uppercase text-ink-dim">cintura cm</div>
+          </div>
+          <div class="rounded-field bg-surface-raised/50 p-3 text-center">
+            <div class="text-h2 text-ink">{{ l.muscleMass }}</div>
+            <div class="text-eyebrow uppercase text-ink-dim">m. muscular</div>
+          </div>
+        </div>
+        <p class="text-meta text-ink-dim mb-3">
+          Última medida: {{ l.recordedAt | date: 'dd/MM/yyyy HH:mm' }}
+        </p>
+      }
+
+      <!-- Full history -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-header-icon"><lucide-icon [img]="History" class="w-4 h-4"></lucide-icon></div>
+          <div>
+            <h2 class="text-h2 text-ink">Historial</h2>
+            <p class="text-[11px] text-ink-dim">{{ measures().length }} registros</p>
+          </div>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-body">
+            <thead>
+              <tr class="border-b border-hairline/80">
+                <th class="table-head-cell">Fecha</th>
+                <th class="table-head-cell">Peso</th>
+                <th class="table-head-cell">% Grasa</th>
+                <th class="table-head-cell">M. Muscular</th>
+                <th class="table-head-cell">Cintura</th>
+                <th class="table-head-cell">Pecho</th>
+                <th class="table-head-cell">Brazos</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-hairline/60">
+              @for (m of measures(); track m.id) {
+                <tr class="table-row">
+                  <td class="px-5 py-3.5 text-ink-muted text-meta whitespace-nowrap">
+                    {{ m.recordedAt | date: 'dd/MM/yyyy HH:mm' }}
+                  </td>
+                  <td class="px-5 py-3.5 font-medium text-ink">{{ m.weight }} kg</td>
+                  <td class="px-5 py-3.5 text-ink-muted">{{ m.bodyFatPercentage }}%</td>
+                  <td class="px-5 py-3.5 text-ink-muted">{{ m.muscleMass }} kg</td>
+                  <td class="px-5 py-3.5 text-ink-muted">{{ m.waist }} cm</td>
+                  <td class="px-5 py-3.5 text-ink-muted">{{ m.chest }} cm</td>
+                  <td class="px-5 py-3.5 text-ink-muted">{{ m.arms }} cm</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+  </div>
+</div>

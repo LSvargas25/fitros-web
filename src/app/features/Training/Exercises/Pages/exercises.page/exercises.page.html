@@ -1,0 +1,187 @@
+<div class="page-shell">
+
+  <div class="max-w-5xl mx-auto">
+
+    <!-- Header -->
+    <div class="flex items-start justify-between flex-wrap gap-4 mb-6">
+      <div class="flex items-center gap-3">
+        <div class="rounded-2xl bg-accent/10 p-2.5">
+          <lucide-icon [img]="Dumbbell" class="w-6 h-6 text-accent-bright"></lucide-icon>
+        </div>
+        <div>
+          <h1 class="page-title">Catálogo de <span class="page-title-accent">Ejercicios</span></h1>
+          <p class="page-subtitle">Crea y mantén los ejercicios disponibles para las rutinas.</p>
+        </div>
+      </div>
+
+      <button type="button" (click)="openCreate()" class="btn-brand">
+        <lucide-icon [img]="Plus" class="w-4 h-4"></lucide-icon>
+        Nuevo ejercicio
+      </button>
+    </div>
+
+    <!-- Action error -->
+    @if (actionError()) {
+      <div class="alert-error mb-4" role="alert">
+        <lucide-icon [img]="AlertTriangle" class="w-4 h-4 mt-0.5 shrink-0"></lucide-icon>
+        <div class="leading-5">{{ actionError() }}</div>
+      </div>
+    }
+
+    <!-- Toolbar -->
+    <div class="flex flex-wrap items-center gap-3 mb-4">
+      <select [(ngModel)]="categoryFilter" (ngModelChange)="onCategoryFilterChange()"
+        class="rounded-field border border-hairline bg-surface px-4 py-2.5 text-body text-ink outline-none transition duration-200 ease-cine focus:ring-2 focus:ring-accent/20 focus:border-accent">
+        <option [ngValue]="''">Todos los grupos</option>
+        @for (opt of muscleGroupOptions; track opt.value) {
+          <option [ngValue]="opt.value">{{ opt.label }}</option>
+        }
+      </select>
+
+      <div class="flex items-center gap-2 rounded-field border border-hairline bg-surface px-4 py-2.5 flex-1 min-w-[12rem] transition duration-200 ease-cine focus-within:ring-2 focus-within:ring-accent/20 focus-within:border-accent">
+        <lucide-icon [img]="Search" class="w-4 h-4 text-ink-dim shrink-0"></lucide-icon>
+        <input type="text" [(ngModel)]="search" placeholder="Buscar por nombre..."
+          class="w-full bg-transparent text-body text-ink outline-none placeholder:text-ink-faint"/>
+      </div>
+    </div>
+
+    <!-- Table card -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-icon">
+          <lucide-icon [img]="Dumbbell" class="w-4 h-4"></lucide-icon>
+        </div>
+        <div>
+          <h2 class="text-h2 text-ink">Ejercicios</h2>
+          <p class="text-[11px] text-ink-dim">{{ filteredExercises().length }} de {{ exercises().length }}</p>
+        </div>
+      </div>
+
+      @if (isLoading()) {
+        <div class="flex items-center justify-center h-40">
+          <div class="spinner w-7 h-7"></div>
+        </div>
+      } @else if (error()) {
+        <div class="p-8 text-center">
+          <p class="text-body text-red-300 mb-3" role="alert">{{ error() }}</p>
+          <button type="button" (click)="load()"
+            class="text-meta font-semibold text-accent-bright hover:text-accent transition">
+            Reintentar
+          </button>
+        </div>
+      } @else if (exercises().length === 0) {
+        <div class="p-8 text-center text-body text-ink-dim">
+          No hay ejercicios{{ categoryFilter !== '' ? ' en este grupo muscular' : '' }} todavía.
+        </div>
+      } @else if (filteredExercises().length === 0) {
+        <div class="p-8 text-center text-body text-ink-dim">Ningún ejercicio coincide con "{{ search }}".</div>
+      } @else {
+        <div class="overflow-x-auto">
+          <table class="w-full text-body">
+            <thead>
+              <tr class="border-b border-hairline/80">
+                <th class="table-head-cell">Nombre</th>
+                <th class="table-head-cell">Grupo muscular</th>
+                <th class="table-head-cell text-right">Acciones</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-hairline/60">
+              @for (exercise of filteredExercises(); track exercise.id) {
+                <tr class="table-row">
+                  <td class="px-5 py-3.5 font-medium text-ink">{{ exercise.name }}</td>
+                  <td class="px-5 py-3.5">
+                    <span class="badge-accent">{{ categoryLabel(exercise.category) }}</span>
+                  </td>
+                  <td class="px-5 py-3.5">
+                    <div class="flex items-center justify-end gap-1.5">
+                      <button type="button" (click)="openEdit(exercise)" class="btn-icon" title="Editar">
+                        <lucide-icon [img]="Pencil" class="w-4 h-4"></lucide-icon>
+                      </button>
+                      <button type="button" (click)="archive(exercise)" [disabled]="archivingId() === exercise.id"
+                        class="btn-icon btn-icon-danger" title="Archivar">
+                        @if (archivingId() === exercise.id) {
+                          <span class="spinner-sm text-ink-muted"></span>
+                        } @else {
+                          <lucide-icon [img]="Archive" class="w-4 h-4"></lucide-icon>
+                        }
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  </div>
+</div>
+
+<!-- Create / edit modal -->
+@if (showForm()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="modal-scrim" (click)="closeForm()"></div>
+
+    <div class="modal-panel">
+      <div class="card-hairline"></div>
+
+      <div class="flex items-center justify-between p-5 border-b border-hairline/80">
+        <h2 class="text-h2 text-ink">{{ editingId() ? 'Editar ejercicio' : 'Nuevo ejercicio' }}</h2>
+        <button type="button" (click)="closeForm()"
+          class="w-8 h-8 rounded-lg flex items-center justify-center text-ink-muted hover:bg-surface-raised hover:text-ink transition-colors">
+          <lucide-icon [img]="X" class="w-4 h-4"></lucide-icon>
+        </button>
+      </div>
+
+      <div class="p-6">
+        @if (isFormLoading()) {
+          <div class="flex items-center justify-center h-32">
+            <div class="spinner w-6 h-6"></div>
+          </div>
+        } @else {
+          @if (formError()) {
+            <div class="alert-error mb-4" role="alert">
+              <lucide-icon [img]="AlertTriangle" class="w-4 h-4 mt-0.5 shrink-0"></lucide-icon>
+              <div class="leading-5">{{ formError() }}</div>
+            </div>
+          }
+
+          <div class="space-y-4">
+            <div>
+              <label class="field-label">Nombre <span class="text-accent-bright">*</span></label>
+              <input type="text" [(ngModel)]="formName" placeholder="Press de banca" class="field"/>
+            </div>
+
+            <div>
+              <label class="field-label">Grupo muscular <span class="text-accent-bright">*</span></label>
+              <select [(ngModel)]="formCategory" class="field">
+                <option [ngValue]="''" disabled>Selecciona un grupo...</option>
+                @for (opt of muscleGroupOptions; track opt.value) {
+                  <option [ngValue]="opt.value">{{ opt.label }}</option>
+                }
+              </select>
+            </div>
+
+            <div>
+              <label class="field-label">Descripción</label>
+              <textarea [(ngModel)]="formDescription" rows="3" placeholder="Técnica, notas de ejecución..."
+                class="field resize-none"></textarea>
+            </div>
+          </div>
+
+          <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-hairline/80">
+            <button type="button" (click)="closeForm()" class="btn-ghost">Cancelar</button>
+            <button type="button" (click)="save()" [disabled]="isSaving()" class="btn-brand">
+              @if (isSaving()) {
+                <span class="spinner-sm text-on-accent/70"></span>
+                Guardando...
+              } @else {
+                {{ editingId() ? 'Guardar cambios' : 'Crear ejercicio' }}
+              }
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}

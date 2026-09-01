@@ -1,0 +1,8 @@
+:host {
+  display: block;
+  contain: layout style;
+}
+
+.sidebar-floating {
+  backdrop-filter: blur(8px);
+}

@@ -1,0 +1,136 @@
+<div class="page-shell">
+  <div class="mx-auto max-w-3xl">
+
+    <!-- Header -->
+    <div class="flex items-center gap-3 mb-6">
+      <div class="rounded-2xl bg-accent/10 p-2.5">
+        <lucide-icon name="dumbbell" class="w-6 h-6 text-accent-bright"></lucide-icon>
+      </div>
+      <div>
+        <h1 class="page-title">Mi entrenamiento de hoy</h1>
+        <p class="page-subtitle">Registra tus series, repeticiones y peso.</p>
+      </div>
+    </div>
+
+    <!-- Coach-only: manage your own weekly plan (a Client's plan is set by their coach) -->
+    <a *ngIf="isCoach" routerLink="/my/training/plan"
+       class="card-flat mb-6 flex items-center gap-3 px-4 py-3 text-body text-ink hover:border-hairline-strong transition duration-200 ease-cine">
+      <lucide-icon [img]="CalendarDays" class="w-5 h-5 text-accent-bright shrink-0"></lucide-icon>
+      <span>Edita tu <span class="text-accent-bright">plan semanal</span> — una rutina por día.</span>
+    </a>
+
+    <!-- Loading -->
+    <div *ngIf="isLoading()" class="flex items-center justify-center py-16 text-ink-muted">
+      <lucide-icon name="loader-2" class="w-6 h-6 animate-spin mr-2"></lucide-icon>
+      Cargando...
+    </div>
+
+    <!-- Error -->
+    <div *ngIf="error()" class="alert-error mb-6" role="alert">
+      <lucide-icon name="alert-triangle" class="w-5 h-5 mt-0.5 shrink-0"></lucide-icon>
+      <div>{{ error() }}</div>
+    </div>
+
+    <!-- Routine picker: shown when there is no routine assigned to today in the active plan -->
+    <div *ngIf="!isLoading() && needsRoutinePicker()" class="card-flat p-6">
+      <p class="text-ink mb-4">
+        No tienes una rutina asignada para hoy en tu plan semanal.
+      </p>
+
+      <ng-container *ngIf="routines().length; else noRoutines">
+        <p class="text-ink-muted text-body mb-4">
+          Elige una rutina para registrar el entrenamiento de todas formas:
+        </p>
+
+        <select class="field mb-4" [ngModel]="selectedRoutineId()"
+                (ngModelChange)="selectedRoutineId.set($event)">
+          <option [ngValue]="null" disabled>Selecciona una rutina...</option>
+          <option *ngFor="let r of routines()" [ngValue]="r.id">{{ r.name }}</option>
+        </select>
+
+        <button type="button" (click)="confirmRoutinePick()" [disabled]="!selectedRoutineId()"
+          class="btn-brand w-full py-3">
+          Empezar con esta rutina
+        </button>
+      </ng-container>
+
+      <ng-template #noRoutines>
+        <p class="text-body text-ink-dim">
+          No tienes un plan de entrenamiento activo. Pídele a tu entrenador que te asigne uno
+          para registrar tus entrenamientos.
+        </p>
+      </ng-template>
+    </div>
+
+    <!-- Session -->
+    <div *ngIf="!isLoading() && session() as s" class="space-y-4">
+
+      <!-- Summary card -->
+      <div class="card-flat p-5 flex items-center justify-between">
+        <div>
+          <div class="text-lg font-semibold text-ink">{{ s.routineNameSnapshot }}</div>
+          <div class="text-meta text-ink-muted">v{{ s.routineVersion }} · {{ statusLabel[s.status] }}</div>
+        </div>
+
+        <div class="flex gap-2" *ngIf="s.status === WorkoutSessionStatus.InProgress">
+          <button type="button" (click)="skipSession()" [disabled]="isBusy()"
+            class="rounded-xl border border-hairline-strong px-3 py-2 text-body text-ink-muted hover:bg-surface-raised transition duration-200 ease-cine disabled:opacity-50">
+            <lucide-icon name="x-circle" class="w-4 h-4 inline mr-1"></lucide-icon>
+            Saltar
+          </button>
+          <button type="button" (click)="completeSession()" [disabled]="isBusy()" class="btn-brand px-3 py-2 text-body">
+            <lucide-icon name="check-circle-2" class="w-4 h-4 inline mr-1"></lucide-icon>
+            Completar
+          </button>
+        </div>
+      </div>
+
+      <!-- Exercises -->
+      <div *ngFor="let ex of s.suggestedExercises" class="card-flat p-5">
+        <div class="flex items-baseline justify-between mb-3">
+          <h2 class="text-ink font-medium">{{ exerciseName(ex.exerciseId) }}</h2>
+          <span class="text-meta text-ink-dim">
+            Sugerido: {{ ex.suggestedSets }}x{{ ex.suggestedReps }} · descanso {{ ex.suggestedRestSeconds }}s
+          </span>
+        </div>
+
+        <!-- Logged sets -->
+        <table class="w-full text-body text-ink-muted mb-3" *ngIf="setsFor(ex.exerciseId).length">
+          <thead>
+            <tr class="text-ink-dim text-meta">
+              <th class="text-left font-normal py-1">Serie</th>
+              <th class="text-left font-normal py-1">Reps</th>
+              <th class="text-left font-normal py-1">Peso</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let set of setsFor(ex.exerciseId)" class="border-t border-hairline/60">
+              <td class="py-1.5">{{ set.setNumber }}</td>
+              <td class="py-1.5">{{ set.repsAchieved }}</td>
+              <td class="py-1.5">{{ set.weightUsed }}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Add set row -->
+        <div class="flex gap-2" *ngIf="s.status === WorkoutSessionStatus.InProgress">
+          <input type="number" min="0" placeholder="Reps"
+            class="w-full rounded-xl border border-hairline bg-canvas px-3 py-2 text-ink outline-none transition duration-200 ease-cine focus:border-accent focus:ring-2 focus:ring-accent/20"
+            [(ngModel)]="draftReps[ex.exerciseId]" />
+          <input type="number" min="0" step="0.5" placeholder="Peso"
+            class="w-full rounded-xl border border-hairline bg-canvas px-3 py-2 text-ink outline-none transition duration-200 ease-cine focus:border-accent focus:ring-2 focus:ring-accent/20"
+            [(ngModel)]="draftWeight[ex.exerciseId]" />
+          <button type="button" (click)="addSet(ex.exerciseId)" [disabled]="isBusy()"
+            class="shrink-0 rounded-xl bg-surface-raised px-3 py-2 text-ink hover:bg-hairline-strong transition duration-200 ease-cine disabled:opacity-50">
+            <lucide-icon name="plus" class="w-4 h-4"></lucide-icon>
+          </button>
+        </div>
+      </div>
+
+      <p *ngIf="!s.suggestedExercises.length" class="text-body text-ink-dim text-center py-6">
+        Esta rutina no tiene ejercicios configurados todavía.
+      </p>
+    </div>
+
+  </div>
+</div>

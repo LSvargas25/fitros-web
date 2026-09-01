@@ -1,0 +1,231 @@
+<div class="page-shell">
+  <div class="max-w-4xl mx-auto">
+
+    <!-- Header -->
+    <div class="flex items-center gap-3 mb-6">
+      <div class="rounded-2xl bg-accent/10 p-2.5">
+        <lucide-icon [img]="CalendarDays" class="w-6 h-6 text-accent-bright"></lucide-icon>
+      </div>
+      <div>
+        @if (selfMode()) {
+          <h1 class="page-title">Mi plan <span class="page-title-accent">semanal</span></h1>
+          <p class="page-subtitle">Arma tu propio plan: una rutina publicada por día, o descanso.</p>
+        } @else {
+          <h1 class="page-title">Planes <span class="page-title-accent">Semanales</span></h1>
+          <p class="page-subtitle">Asigna una rutina publicada a cada día de la semana del cliente.</p>
+        }
+      </div>
+    </div>
+
+    @if (clientsError()) {
+      <div class="alert-error mb-4" role="alert">
+        <lucide-icon [img]="AlertTriangle" class="w-4 h-4 mt-0.5 shrink-0"></lucide-icon>
+        <div class="leading-5">{{ clientsError() }}</div>
+      </div>
+    }
+
+    @if (selfError()) {
+      <div class="alert-error mb-4" role="alert">
+        <lucide-icon [img]="AlertTriangle" class="w-4 h-4 mt-0.5 shrink-0"></lucide-icon>
+        <div class="leading-5">{{ selfError() }}</div>
+      </div>
+    }
+
+    @if (hasNoPublishedRoutines()) {
+      <div class="alert-error mb-4" role="alert">
+        <lucide-icon [img]="AlertTriangle" class="w-4 h-4 mt-0.5 shrink-0"></lucide-icon>
+        <div class="leading-5">
+          @if (routinesError()) {
+            {{ routinesError() }}
+          } @else {
+            No hay rutinas publicadas para asignar.
+            <a routerLink="/manage/training/routines" class="text-accent-bright underline">Crea y publica una rutina</a>
+            para poder armar un plan semanal.
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Client picker (staff mode only; in self mode the client is the coach) -->
+    @if (!selfMode()) {
+      <div class="mb-6">
+        <label class="field-label" for="wp-client">Cliente</label>
+        <select id="wp-client" [ngModel]="selectedClientId()"
+                (ngModelChange)="selectedClientId.set($event); onClientChange()" class="field">
+          <option value="">Selecciona un cliente...</option>
+          @for (c of clients(); track c.clientProfileId) {
+            <option [value]="c.clientProfileId">{{ c.firstName }} {{ c.lastName }} — {{ c.email }}</option>
+          }
+        </select>
+      </div>
+    }
+
+    @if (selectedClientId()) {
+      <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+
+        <!-- Plans list + create -->
+        <div class="lg:col-span-2 space-y-4">
+          <div class="card-flat p-4">
+            <label class="field-label" for="wp-new-plan">Nuevo plan</label>
+            <div class="flex gap-2">
+              <input id="wp-new-plan" type="text" [(ngModel)]="newPlanName"
+                     placeholder="Ej. Hipertrofia — bloque 1" class="field"/>
+              <button type="button" (click)="createPlan()" [disabled]="isCreatingPlan()"
+                      class="btn-brand shrink-0 px-3" aria-label="Crear plan">
+                @if (isCreatingPlan()) { <span class="spinner-sm text-on-accent/70"></span> }
+                @else { <lucide-icon [img]="Plus" class="w-4 h-4"></lucide-icon> }
+              </button>
+            </div>
+            @if (createError()) { <p class="text-meta text-red-300 mt-2" role="alert">{{ createError() }}</p> }
+          </div>
+
+          @if (isLoadingPlans()) {
+            <div class="flex items-center justify-center h-24"><div class="spinner w-6 h-6"></div></div>
+          } @else if (plansError()) {
+            <div class="alert-error" role="alert"><div class="leading-5">{{ plansError() }}</div></div>
+          } @else if (plans().length === 0) {
+            <p class="text-body text-ink-dim px-1">Este cliente aún no tiene planes semanales.</p>
+          } @else {
+            <ul class="space-y-2">
+              @for (plan of plans(); track plan.id) {
+                <li>
+                  <button type="button" (click)="selectPlan(plan.id)"
+                    class="w-full text-left card-flat px-4 py-3 transition duration-200 ease-cine hover:border-hairline-strong"
+                    [class.border-accent]="selectedPlan()?.id === plan.id">
+                    <div class="flex items-center justify-between gap-2">
+                      <span class="font-medium text-ink truncate">{{ plan.name }}</span>
+                      <span [class]="plan.status === TrainingPlanStatus.Active ? 'badge-accent' : 'badge-muted'">
+                        {{ statusLabel[plan.status] }}
+                      </span>
+                    </div>
+                    <div class="text-meta text-ink-dim mt-0.5">{{ plan.dayCount }} días asignados</div>
+                  </button>
+                </li>
+              }
+            </ul>
+          }
+        </div>
+
+        <!-- Selected plan -->
+        <div class="lg:col-span-3">
+          @if (isLoadingPlan()) {
+            <div class="flex items-center justify-center h-40"><div class="spinner w-7 h-7"></div></div>
+          } @else if (selectedPlan(); as p) {
+            <div class="card">
+              <div class="card-hairline"></div>
+              <div class="p-5">
+
+                <div class="flex items-start justify-between gap-3 mb-4">
+                  @if (isRenaming()) {
+                    <div class="flex gap-2 flex-1">
+                      <input type="text" [(ngModel)]="renameValue" class="field" aria-label="Nuevo nombre del plan"/>
+                      <button type="button" (click)="confirmRename()" [disabled]="busyPlan()"
+                              class="btn-brand shrink-0 px-3" aria-label="Guardar nombre">
+                        <lucide-icon [img]="Check" class="w-4 h-4"></lucide-icon>
+                      </button>
+                      <button type="button" (click)="isRenaming.set(false)"
+                              class="btn-ghost shrink-0 px-3" aria-label="Cancelar">
+                        <lucide-icon [img]="X" class="w-4 h-4"></lucide-icon>
+                      </button>
+                    </div>
+                  } @else {
+                    <div>
+                      <div class="flex items-center gap-2">
+                        <span class="text-lg font-semibold text-ink">{{ p.name }}</span>
+                        <button type="button" (click)="startRename()" class="btn-icon" title="Renombrar"
+                                aria-label="Renombrar plan">
+                          <lucide-icon [img]="Pencil" class="w-3.5 h-3.5"></lucide-icon>
+                        </button>
+                      </div>
+                      <span [class]="p.status === TrainingPlanStatus.Active ? 'badge-accent' : 'badge-muted'">
+                        {{ statusLabel[p.status] }}
+                      </span>
+                    </div>
+                    <div class="flex gap-2 shrink-0">
+                      @if (p.status !== TrainingPlanStatus.Active) {
+                        <button type="button" (click)="activatePlan()" [disabled]="busyPlan()"
+                          class="btn-ghost text-emerald-300 border-emerald-900/50 hover:bg-emerald-900/20">
+                          <lucide-icon [img]="Check" class="w-3.5 h-3.5"></lucide-icon> Activar
+                        </button>
+                      }
+                      @if (p.status !== TrainingPlanStatus.Archived) {
+                        <button type="button" (click)="archivePlan()" [disabled]="busyPlan()"
+                                class="btn-ghost" aria-label="Archivar plan">
+                          <lucide-icon [img]="Archive" class="w-3.5 h-3.5"></lucide-icon>
+                        </button>
+                      }
+                    </div>
+                  }
+                </div>
+
+                @if (planError()) {
+                  <div class="alert-error mb-4" role="alert"><div class="leading-5">{{ planError() }}</div></div>
+                }
+
+                @if (p.status === TrainingPlanStatus.Archived) {
+                  <p class="text-meta text-ink-dim mb-3">Este plan está archivado. Actívalo para volver a editarlo.</p>
+                }
+
+                <!-- Week grid: one row per day, Monday-first -->
+                <div class="space-y-2">
+                  @for (row of weekRows(); track row.day) {
+                    <div class="rounded-field border border-hairline p-3">
+                      <div class="flex items-center justify-between gap-3">
+                        <span class="text-eyebrow uppercase text-ink-dim w-24 shrink-0">{{ row.label }}</span>
+
+                        <div class="flex-1 min-w-0">
+                          <label class="sr-only" [attr.for]="'wp-day-' + row.day">Rutina para {{ row.label }}</label>
+                          <select
+                            [id]="'wp-day-' + row.day"
+                            class="field"
+                            [ngModel]="row.assigned?.workoutRoutineId ?? ''"
+                            (ngModelChange)="changeDayRoutine(row.day, $event)"
+                            [disabled]="p.status === TrainingPlanStatus.Archived || hasNoPublishedRoutines() || savingDay() !== null">
+                            <option value="">Descanso</option>
+                            @for (r of routines(); track r.id) {
+                              <option [value]="r.id">{{ r.name }}</option>
+                            }
+                            @if (row.assigned && !isKnownRoutine(row.assigned.workoutRoutineId)) {
+                              <option [value]="row.assigned.workoutRoutineId">
+                                {{ row.assigned.workoutRoutineName }} (no publicada)
+                              </option>
+                            }
+                          </select>
+                        </div>
+
+                        @if (savingDay() === row.day) {
+                          <span class="spinner-sm text-ink-muted shrink-0"
+                                role="status" aria-label="Guardando"></span>
+                        } @else if (!row.assigned) {
+                          <!-- decorative: the select already reads "Descanso" -->
+                          <lucide-icon [img]="Moon" class="w-4 h-4 text-ink-dim shrink-0"
+                                       aria-hidden="true"></lucide-icon>
+                        }
+                      </div>
+
+                      @if (row.assigned) {
+                        <input
+                          type="text"
+                          class="field mt-2 text-sm"
+                          [attr.aria-label]="'Nota para ' + row.label"
+                          placeholder="Nota (opcional) — ej. enfoque en técnica"
+                          [ngModel]="row.assigned.notes ?? ''"
+                          (blur)="saveDayNotes(row.day, $any($event.target).value)"
+                          [disabled]="p.status === TrainingPlanStatus.Archived || savingDay() !== null"/>
+                      }
+                    </div>
+                  }
+                </div>
+
+              </div>
+            </div>
+          } @else {
+            <div class="card-flat p-10 text-center text-body text-ink-dim">
+              Selecciona o crea un plan para editarlo.
+            </div>
+          }
+        </div>
+      </div>
+    }
+  </div>
+</div>

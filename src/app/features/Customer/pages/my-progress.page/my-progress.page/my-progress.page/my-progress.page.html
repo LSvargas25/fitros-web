@@ -1,0 +1,107 @@
+<div class="page-shell">
+
+  <!-- Header -->
+  <div class="max-w-4xl mx-auto mb-8">
+    <h1 class="page-title">Mi <span class="page-title-accent">Progreso</span></h1>
+    <p class="page-subtitle">Tu evolución de peso y el resumen del mes vs. el anterior</p>
+  </div>
+
+  <div class="max-w-4xl mx-auto space-y-6">
+
+    @if (isLoading()) {
+      <div class="flex items-center justify-center h-40">
+        <div class="spinner w-7 h-7"></div>
+      </div>
+    } @else if (error()) {
+      <div class="card-flat p-8 text-center text-body text-red-300" role="alert">
+        {{ error() }}
+      </div>
+    } @else {
+
+      <!-- Weight trend chart -->
+      <div class="card">
+        <div class="card-hairline"></div>
+        <div class="p-6">
+          <div class="flex items-center gap-2 mb-4">
+            <lucide-icon name="chart-line" class="w-5 h-5 text-accent-bright"></lucide-icon>
+            <h2 class="text-h2 text-ink">Tendencia de peso</h2>
+          </div>
+
+          @if (chartData(); as chart) {
+            <div class="flex items-center justify-between text-meta text-ink-dim mb-2">
+              <span>{{ chart.maxWeight }} kg</span>
+              <span>{{ chart.minWeight }} kg</span>
+            </div>
+            <svg [attr.viewBox]="'0 0 ' + chart.width + ' ' + chart.height" class="w-full h-44">
+              <path [attr.d]="chart.path" fill="none" stroke="#facc15" stroke-width="2.5"
+                    stroke-linejoin="round" stroke-linecap="round"></path>
+              @for (p of chart.points; track p.recordedAt) {
+                <circle [attr.cx]="p.x" [attr.cy]="p.y" r="3.5" fill="#0f172a" stroke="#facc15" stroke-width="2">
+                  <title>{{ p.weight }} kg - {{ p.recordedAt | date: 'dd/MM/yyyy' }}</title>
+                </circle>
+              }
+            </svg>
+            <div class="flex items-center justify-between text-[11px] text-ink-dim mt-1">
+              <span>{{ chart.points[0].recordedAt | date: 'dd/MM/yyyy' }}</span>
+              <span>{{ chart.points[chart.points.length - 1].recordedAt | date: 'dd/MM/yyyy' }}</span>
+            </div>
+          } @else {
+            <div class="h-44 flex items-center justify-center text-body text-ink-dim">
+              Registra al menos una medida en "Mis Medidas" para ver tu tendencia.
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- This month vs. last month -->
+      <div class="card">
+        <div class="card-hairline"></div>
+        <div class="p-6">
+          <div class="flex items-center gap-2 mb-4">
+            <lucide-icon name="trending-up" class="w-5 h-5 text-accent-bright"></lucide-icon>
+            <h2 class="text-h2 text-ink">Este mes vs. el anterior</h2>
+          </div>
+
+          @if (reportError()) {
+            <div class="alert-error" role="alert">
+              <lucide-icon name="alert-triangle" class="w-4 h-4 mt-0.5 shrink-0"></lucide-icon>
+              <div class="leading-5">{{ reportError() }}</div>
+            </div>
+          } @else if (report(); as r) {
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              @for (card of cards(); track card.key) {
+                <div class="rounded-field border border-hairline bg-surface-raised/40 p-4">
+                  <div class="text-eyebrow uppercase text-ink-dim mb-1">{{ card.label }}</div>
+                  <div class="flex items-baseline gap-2">
+                    <span class="text-display text-ink leading-none">{{ format(card.metric.current) }}</span>
+                    <span class="text-meta text-ink-dim">{{ card.unit }}</span>
+                  </div>
+                  <div class="mt-2 flex items-center gap-2 text-meta">
+                    @if (tone(card.metric, card.lowerIsBetter) === 'good') {
+                      <span class="inline-flex items-center gap-1 text-emerald-400">
+                        <lucide-icon [name]="card.lowerIsBetter ? 'trending-down' : 'trending-up'" class="w-3.5 h-3.5"></lucide-icon>
+                        {{ formatDelta(card.metric.delta) }} {{ card.unit }}
+                      </span>
+                    } @else if (tone(card.metric, card.lowerIsBetter) === 'bad') {
+                      <span class="inline-flex items-center gap-1 text-red-400">
+                        <lucide-icon [name]="card.lowerIsBetter ? 'trending-up' : 'trending-down'" class="w-3.5 h-3.5"></lucide-icon>
+                        {{ formatDelta(card.metric.delta) }} {{ card.unit }}
+                      </span>
+                    } @else {
+                      <span class="inline-flex items-center gap-1 text-ink-dim">sin cambio</span>
+                    }
+                    <span class="text-ink-dim">· mes previo {{ format(card.metric.previous) }} {{ card.unit }}</span>
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="h-24 flex items-center justify-center text-body text-ink-dim">
+              Aún no hay datos suficientes para comparar meses.
+            </div>
+          }
+        </div>
+      </div>
+    }
+  </div>
+</div>
