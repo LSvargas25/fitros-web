@@ -167,12 +167,15 @@
           </div>
 
           <!-- Google -->
-          <button type="button" (click)="loginWithGoogle()" class="w-full flex items-center justify-center gap-3 rounded-2xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm font-medium text-slate-200
+          <button type="button" (click)="loginWithGoogle()" [disabled]="isGoogleSubmitting" class="w-full flex items-center justify-center gap-3 rounded-2xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm font-medium text-slate-200
                    hover:border-slate-600 hover:bg-slate-800 transition
-                   active:scale-[0.99]">
-            <!-- If you already have assets/icons/google.svg, keep it -->
-            <img src="/icons/google.png" class="w-5 h-5" alt="Google" />
-            Continue with Google
+                   active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed">
+            <img src="/icons/google.png" class="w-5 h-5" alt="" />
+            <span *ngIf="!isGoogleSubmitting">Continue with Google</span>
+            <span *ngIf="isGoogleSubmitting" class="inline-flex items-center gap-2">
+              <lucide-icon name="loader-2" class="w-5 h-5 animate-spin"></lucide-icon>
+              Connecting...
+            </span>
           </button>
 
           <!-- Sign up -->

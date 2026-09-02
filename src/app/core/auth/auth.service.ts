@@ -11,7 +11,8 @@ import {
   RefreshResponse,
   RegisterRequest,
   RegisterResponse,
-  VerifyEmailRequest
+  VerifyEmailRequest,
+  GoogleLoginResponse
 } from '../../shared/models/auth.models';
 import { TokenStorageService } from './token-storage.service';
 
@@ -106,6 +107,24 @@ export class AuthService {
       `${this.authBase}/resend-verification`,
       { email }
     );
+  }
+
+  // =============================
+  // GOOGLE
+  // =============================
+
+  loginWithGoogle(idToken: string, rememberMe = true): Observable<GoogleLoginResponse> {
+    return this.http
+      .post<GoogleLoginResponse>(`${this.authBase}/google`, { idToken })
+      .pipe(
+        tap(res =>
+          this.tokenStorage.setTokens(
+            res.accessToken,
+            res.refreshToken,
+            rememberMe
+          )
+        )
+      );
   }
 
   // =============================

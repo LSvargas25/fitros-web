@@ -125,6 +125,24 @@ describe('AuthService', () => {
     req.flush(null);
   });
 
+  it('loginWithGoogle() posts the id_token and persists the returned tokens', () => {
+    service.loginWithGoogle('google-jwt', false).subscribe();
+
+    const req = http.expectOne(`${AUTH}/google`);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ idToken: 'google-jwt' });
+
+    req.flush({
+      userId: 'u1',
+      email: 'a@b.com',
+      role: 3,
+      accessToken: 'acc',
+      refreshToken: 'ref',
+    });
+
+    expect(tokenStorage.setTokens).toHaveBeenCalledWith('acc', 'ref', false);
+  });
+
   it('forgotPassword() and resetPassword() hit their endpoints', () => {
     service.forgotPassword('a@b.com').subscribe();
     http.expectOne(`${AUTH}/forgot-password`).flush(null);

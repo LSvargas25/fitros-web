@@ -7,6 +7,7 @@ import { Login } from './login';
 import { AuthService } from '../../../core/auth/auth.service';
 import { TokenStorageService } from '../../../core/auth/token-storage.service';
 import { SessionFacade } from '../../../core/auth/session-facade';
+import { GoogleIdentityService } from '../../../core/auth/google-identity.service';
 
 import {
   LucideAngularModule,
@@ -26,12 +27,14 @@ describe('Login', () => {
   let authSpy: jasmine.SpyObj<AuthService>;
   let routerSpy: jasmine.SpyObj<Router>;
   let tokenStorageSpy: jasmine.SpyObj<TokenStorageService>;
+  let googleSpy: jasmine.SpyObj<GoogleIdentityService>;
   let sessionStub: { landingUrl: string };
 
   beforeEach(async () => {
-    authSpy = jasmine.createSpyObj('AuthService', ['login']);
+    authSpy = jasmine.createSpyObj('AuthService', ['login', 'loginWithGoogle']);
     routerSpy = jasmine.createSpyObj('Router', ['navigateByUrl']);
     tokenStorageSpy = jasmine.createSpyObj('TokenStorageService', ['setTokens']);
+    googleSpy = jasmine.createSpyObj('GoogleIdentityService', ['requestIdToken']);
     sessionStub = { landingUrl: '/my/training' };
 
     await TestBed.configureTestingModule({
@@ -41,6 +44,7 @@ describe('Login', () => {
         { provide: Router, useValue: routerSpy },
         { provide: TokenStorageService, useValue: tokenStorageSpy },
         { provide: SessionFacade, useValue: sessionStub },
+        { provide: GoogleIdentityService, useValue: googleSpy },
 
         importProvidersFrom(
           LucideAngularModule.pick({
@@ -114,5 +118,33 @@ describe('Login', () => {
     component.submit();
 
     expect(component.errorMessage).toBe('Invalid credentials');
+  });
+
+  it('exchanges the Google id_token and navigates on success', async () => {
+    googleSpy.requestIdToken.and.resolveTo('google-jwt');
+    authSpy.loginWithGoogle.and.returnValue(of({
+      userId: 'u1',
+      email: 'a@b.com',
+      role: 3,
+      accessToken: 'a',
+      refreshToken: 'b',
+    }));
+
+    await component.loginWithGoogle();
+
+    expect(authSpy.loginWithGoogle).toHaveBeenCalledWith('google-jwt', true);
+    expect(routerSpy.navigateByUrl).toHaveBeenCalledWith('/my/training');
+  });
+
+  it('shows the reason when the Google prompt is dismissed or unconfigured', async () => {
+    googleSpy.requestIdToken.and.rejectWith(
+      new Error('Google sign-in is not configured yet.'),
+    );
+
+    await component.loginWithGoogle();
+
+    expect(authSpy.loginWithGoogle).not.toHaveBeenCalled();
+    expect(component.errorMessage).toBe('Google sign-in is not configured yet.');
+    expect(component.isGoogleSubmitting).toBeFalse();
   });
 });

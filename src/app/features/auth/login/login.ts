@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 
 import { AuthService } from '../../../core/auth/auth.service';
 import { SessionFacade } from '../../../core/auth/session-facade';
+import { GoogleIdentityService } from '../../../core/auth/google-identity.service';
 
 import {
   LucideAngularModule,
@@ -34,9 +35,11 @@ export class Login {
   private readonly session = inject(SessionFacade);
   private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly googleIdentity = inject(GoogleIdentityService);
 
   // UI state
   isSubmitting = false;
+  isGoogleSubmitting = false;
   errorMessage: string | null = null;
   showPassword = false;
 
@@ -104,7 +107,39 @@ export class Login {
     this.router.navigate(['/register']);
   }
 
-  loginWithGoogle(): void {
-    console.log('Google login not implemented yet');
+  async loginWithGoogle(): Promise<void> {
+
+    if (this.isGoogleSubmitting) {
+      return;
+    }
+
+    this.errorMessage = null;
+    this.isGoogleSubmitting = true;
+    this.cdr.detectChanges();
+
+    let idToken: string;
+    try {
+      idToken = await this.googleIdentity.requestIdToken();
+    } catch (err: any) {
+      this.isGoogleSubmitting = false;
+      this.errorMessage = err?.message || 'Google sign-in failed. Please try again.';
+      this.cdr.detectChanges();
+      return;
+    }
+
+    const rememberMe = this.form.controls.rememberMe.value;
+
+    this.auth.loginWithGoogle(idToken, rememberMe).subscribe({
+      next: () => {
+        this.isGoogleSubmitting = false;
+        this.cdr.detectChanges();
+        this.router.navigateByUrl(this.session.landingUrl);
+      },
+      error: (err) => {
+        this.isGoogleSubmitting = false;
+        this.errorMessage = err?.detail || 'Google sign-in failed. Please try again.';
+        this.cdr.detectChanges();
+      },
+    });
   }
 }

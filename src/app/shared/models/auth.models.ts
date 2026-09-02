@@ -39,3 +39,15 @@ export interface VerifyEmailRequest {
 export interface ResendVerificationRequest {
   email: string;
 }
+
+export interface GoogleLoginRequest {
+  idToken: string;
+}
+
+export interface GoogleLoginResponse {
+  userId: string;
+  email: string;
+  role: number;
+  accessToken: string;
+  refreshToken: string;
+}
