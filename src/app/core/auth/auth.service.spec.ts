@@ -107,6 +107,24 @@ describe('AuthService', () => {
     expect(service.isAuthenticated()).toBeFalse();
   });
 
+  it('verifyEmail() posts the email and code', () => {
+    service.verifyEmail({ email: 'a@b.com', code: '123456' }).subscribe();
+
+    const req = http.expectOne(`${AUTH}/verify-email`);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ email: 'a@b.com', code: '123456' });
+    req.flush(null);
+  });
+
+  it('resendVerification() posts just the email', () => {
+    service.resendVerification('a@b.com').subscribe();
+
+    const req = http.expectOne(`${AUTH}/resend-verification`);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ email: 'a@b.com' });
+    req.flush(null);
+  });
+
   it('forgotPassword() and resetPassword() hit their endpoints', () => {
     service.forgotPassword('a@b.com').subscribe();
     http.expectOne(`${AUTH}/forgot-password`).flush(null);

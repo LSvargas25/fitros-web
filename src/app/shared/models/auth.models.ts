@@ -30,3 +30,12 @@ export interface RegisterResponse {
   userId: string;
   email: string;
 }
+
+export interface VerifyEmailRequest {
+  email: string;
+  code: string;
+}
+
+export interface ResendVerificationRequest {
+  email: string;
+}

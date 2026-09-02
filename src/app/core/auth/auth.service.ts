@@ -10,7 +10,8 @@ import {
   RefreshRequest,
   RefreshResponse,
   RegisterRequest,
-  RegisterResponse
+  RegisterResponse,
+  VerifyEmailRequest
 } from '../../shared/models/auth.models';
 import { TokenStorageService } from './token-storage.service';
 
@@ -84,6 +85,26 @@ export class AuthService {
     return this.http.post<RegisterResponse>(
       `${this.authBase}/register`,
       request
+    );
+  }
+
+  // =============================
+  // VERIFY EMAIL
+  // =============================
+
+  verifyEmail(request: VerifyEmailRequest): Observable<void> {
+    return this.http.post<void>(
+      `${this.authBase}/verify-email`,
+      request
+    );
+  }
+
+  // Backend always answers 200 here (no email enumeration); throttling is
+  // enforced by the controller-level rate limiter, which replies 429.
+  resendVerification(email: string): Observable<void> {
+    return this.http.post<void>(
+      `${this.authBase}/resend-verification`,
+      { email }
     );
   }
 

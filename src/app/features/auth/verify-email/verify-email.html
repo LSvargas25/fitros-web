@@ -1,0 +1,126 @@
+<div class="min-h-screen bg-slate-950 relative overflow-hidden flex items-center justify-center px-4 py-10">
+
+  <!-- Background: soft premium layers -->
+  <div class="absolute inset-0 pointer-events-none">
+    <div class="absolute -top-48 -right-48 w-[520px] h-[520px] rounded-full bg-yellow-500/10 blur-3xl"></div>
+    <div class="absolute -bottom-48 -left-48 w-[520px] h-[520px] rounded-full bg-indigo-500/10 blur-3xl"></div>
+
+    <div class="absolute inset-0 opacity-[0.08]" style="background-image: linear-gradient(rgba(148,163,184,0.25) 1px, transparent 1px),
+                                 linear-gradient(90deg, rgba(148,163,184,0.25) 1px, transparent 1px);
+                background-size: 48px 48px;">
+    </div>
+
+    <div class="absolute inset-0 bg-gradient-to-b from-slate-950/30 via-slate-950/60 to-slate-950"></div>
+  </div>
+
+  <!-- Card -->
+  <div class="relative w-full max-w-md">
+    <div class="rounded-3xl border border-slate-800/80 bg-slate-900/55 backdrop-blur-xl shadow-2xl
+             ring-1 ring-white/5 overflow-hidden">
+      <div class="h-1 w-full bg-gradient-to-r from-yellow-500/80 via-amber-400/80 to-yellow-500/80"></div>
+
+      <div class="p-8">
+        <!-- Header -->
+        <div class="flex flex-col items-center text-center">
+          <div class="relative group">
+            <div
+              class="absolute inset-0 rounded-full bg-yellow-500/20 blur-xl opacity-70 group-hover:opacity-100 transition">
+            </div>
+
+            <img src="/images/fitros-logo.png" alt="FitRos logo"
+              class="relative w-20 h-20 object-contain rounded-full select-none ring-1 ring-white/10"
+              draggable="false" />
+          </div>
+
+          <h1 class="mt-5 text-2xl font-semibold text-slate-100 tracking-tight">
+            Verify your email
+          </h1>
+
+          <p class="mt-1 text-sm text-slate-400" *ngIf="!linkInvalid">
+            Enter the 6-digit code we sent to
+            <span class="text-slate-200">{{ email }}</span>
+          </p>
+        </div>
+
+        <!-- Missing email in the link -->
+        <div *ngIf="linkInvalid" class="mt-6 text-sm text-red-300 text-center">
+          This verification link is missing an email address. Start again from sign-up.
+          <button type="button" class="block w-full mt-4 text-xs text-yellow-400 hover:text-yellow-300 transition"
+            (click)="goToRegister()">
+            Go to sign-up
+          </button>
+        </div>
+
+        <!-- Form -->
+        <form *ngIf="!linkInvalid" class="mt-8 space-y-5" [formGroup]="form" (ngSubmit)="submit()">
+
+          <div>
+            <label class="block text-sm font-medium text-slate-300 mb-1 text-left">
+              Verification code
+            </label>
+
+            <input type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6"
+              formControlName="code" [attr.aria-invalid]="codeInvalid" class="w-full rounded-2xl border bg-slate-950 px-4 py-3
+             text-center text-lg tracking-[0.5em] text-slate-100 outline-none transition
+             focus:ring-2 focus:ring-yellow-500/20 focus:border-yellow-500
+             border-slate-800" [class.border-red-500]="codeInvalid" />
+
+            <div *ngIf="codeInvalid" class="mt-1 text-xs text-red-300 text-center">
+              Enter the 6-digit code from the email.
+            </div>
+          </div>
+
+          <!-- Error global -->
+          <div *ngIf="errorMessage"
+            class="rounded-2xl border border-red-900/50 bg-red-900/25 p-3 text-sm text-red-200 flex gap-2"
+            role="alert">
+            <lucide-icon name="alert-triangle" class="w-5 h-5 mt-0.5 text-red-200"></lucide-icon>
+            <div class="leading-5">{{ errorMessage }}</div>
+          </div>
+
+          <!-- Success -->
+          <div *ngIf="success"
+            class="rounded-2xl border border-green-900/50 bg-green-900/25 p-3 text-sm text-green-200 text-center">
+            Email verified. Redirecting to sign in...
+          </div>
+
+          <!-- Resend confirmation -->
+          <div *ngIf="resendMessage && !success" class="text-xs text-slate-400 text-center">
+            {{ resendMessage }}
+          </div>
+
+          <!-- Submit -->
+          <button type="submit" [disabled]="form.invalid || isSubmitting || success" class="w-full rounded-2xl bg-gradient-to-r from-yellow-500 to-amber-500 px-4 py-3 font-semibold text-black
+                   hover:brightness-110 active:scale-[0.99] transition
+                   disabled:opacity-60 disabled:cursor-not-allowed
+                   shadow-[0_10px_30px_-12px_rgba(212,175,55,0.55)]">
+            <span *ngIf="!isSubmitting">Verify email</span>
+
+            <span *ngIf="isSubmitting" class="inline-flex items-center justify-center gap-2">
+              <lucide-icon name="loader-2" class="w-5 h-5 animate-spin"></lucide-icon>
+              Verifying...
+            </span>
+          </button>
+
+          <!-- Resend -->
+          <div class="flex items-center gap-3 my-2">
+            <div class="h-px flex-1 bg-slate-800"></div>
+            <span class="text-[11px] tracking-wider text-slate-500">DIDN'T GET IT?</span>
+            <div class="h-px flex-1 bg-slate-800"></div>
+          </div>
+
+          <button type="button" (click)="resend()"
+            [disabled]="isResending || resendCooldown > 0 || success" class="w-full flex items-center justify-center gap-2 rounded-2xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm font-medium text-slate-200
+                   hover:border-slate-600 hover:bg-slate-800 transition
+                   active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed">
+            <lucide-icon *ngIf="isResending" name="loader-2" class="w-4 h-4 animate-spin"></lucide-icon>
+            <span *ngIf="resendCooldown > 0">Resend in {{ resendCooldown }}s</span>
+            <span *ngIf="resendCooldown === 0 && !isResending">Resend code</span>
+            <span *ngIf="resendCooldown === 0 && isResending">Sending...</span>
+          </button>
+
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
