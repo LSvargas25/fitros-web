@@ -41,6 +41,7 @@ import {
 
 import { AuthInterceptor } from './core/http/AuthInterceptor';
 import { ErrorInterceptor } from './core/interceptors/error.interceptor';
+import { ServerWakeInterceptor } from './core/interceptors/server-wake.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -83,6 +84,7 @@ export const appConfig: ApplicationConfig = {
       })
     ),
 
+    { provide: HTTP_INTERCEPTORS, useClass: ServerWakeInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptor, multi: true },
   ],
