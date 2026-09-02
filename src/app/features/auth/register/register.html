@@ -2,18 +2,14 @@
 
   <!-- Background: soft premium layers -->
   <div class="absolute inset-0 pointer-events-none">
-    <!-- top right gold glow -->
     <div class="absolute -top-48 -right-48 w-[520px] h-[520px] rounded-full bg-yellow-500/10 blur-3xl"></div>
-    <!-- bottom left indigo glow -->
     <div class="absolute -bottom-48 -left-48 w-[520px] h-[520px] rounded-full bg-indigo-500/10 blur-3xl"></div>
 
-    <!-- subtle grid -->
     <div class="absolute inset-0 opacity-[0.08]" style="background-image: linear-gradient(rgba(148,163,184,0.25) 1px, transparent 1px),
                                  linear-gradient(90deg, rgba(148,163,184,0.25) 1px, transparent 1px);
                 background-size: 48px 48px;">
     </div>
 
-    <!-- vignette -->
     <div class="absolute inset-0 bg-gradient-to-b from-slate-950/30 via-slate-950/60 to-slate-950"></div>
   </div>
 
@@ -21,42 +17,69 @@
   <div class="relative w-full max-w-md">
     <div class="rounded-3xl border border-slate-800/80 bg-slate-900/55 backdrop-blur-xl shadow-2xl
              ring-1 ring-white/5 overflow-hidden">
-      <!-- Top accent strip -->
       <div class="h-1 w-full bg-gradient-to-r from-yellow-500/80 via-amber-400/80 to-yellow-500/80"></div>
 
       <div class="p-8">
         <!-- Header -->
         <div class="flex flex-col items-center text-center">
           <div class="relative group">
-            <!-- Logo halo -->
             <div
               class="absolute inset-0 rounded-full bg-yellow-500/20 blur-xl opacity-70 group-hover:opacity-100 transition">
             </div>
 
-            <!-- Logo (use your path) -->
             <img src="/images/fitros-logo.png" alt="FitRos logo"
               class="relative w-20 h-20 object-contain rounded-full select-none ring-1 ring-white/10"
               draggable="false" />
           </div>
 
           <h1 class="mt-5 text-2xl font-semibold text-slate-100 tracking-tight">
-            Welcome back
+            Create your account
           </h1>
 
           <p class="mt-1 text-sm text-slate-400">
-            Sign in to your FitRos account
+            Start training with FitRos
           </p>
 
-          <!-- trust badge -->
           <div
             class="mt-4 inline-flex items-center gap-2 rounded-full border border-slate-800 bg-slate-950/40 px-3 py-1 text-xs text-slate-300">
             <lucide-icon name="shield-check" class="w-4 h-4 text-yellow-400"></lucide-icon>
-            Secure sign-in
+            Secure sign-up
           </div>
         </div>
 
         <!-- Form -->
         <form class="mt-8 space-y-5" [formGroup]="form" (ngSubmit)="submit()">
+
+          <!-- Name row -->
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-sm font-medium text-slate-300 mb-1 text-left">
+                First name
+              </label>
+              <input type="text" formControlName="firstName" autocomplete="given-name"
+                [attr.aria-invalid]="firstNameInvalid" class="w-full rounded-2xl border bg-slate-950 px-4 py-3
+               text-slate-100 outline-none transition
+               focus:ring-2 focus:ring-yellow-500/20 focus:border-yellow-500
+               border-slate-800" [class.border-red-500]="firstNameInvalid" />
+              <div *ngIf="firstNameInvalid" class="mt-1 text-xs text-red-300">
+                First name is required.
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-slate-300 mb-1 text-left">
+                Last name
+              </label>
+              <input type="text" formControlName="lastName" autocomplete="family-name"
+                [attr.aria-invalid]="lastNameInvalid" class="w-full rounded-2xl border bg-slate-950 px-4 py-3
+               text-slate-100 outline-none transition
+               focus:ring-2 focus:ring-yellow-500/20 focus:border-yellow-500
+               border-slate-800" [class.border-red-500]="lastNameInvalid" />
+              <div *ngIf="lastNameInvalid" class="mt-1 text-xs text-red-300">
+                Last name is required.
+              </div>
+            </div>
+          </div>
 
           <!-- Email -->
           <div>
@@ -65,55 +88,37 @@
             </label>
 
             <div class="relative">
-              <!-- centered icon -->
-              <lucide-icon name="mail" class="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2
-             w-5 h-5 text-slate-500 transition-opacity duration-200"
-                [class.opacity-0]="form.get('email')?.value"></lucide-icon>
+              <lucide-icon name="mail" class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2
+             w-5 h-5 text-slate-500"></lucide-icon>
 
               <input type="email" formControlName="email" autocomplete="email" [attr.aria-invalid]="emailInvalid"
-                aria-describedby="email-help" class="w-full rounded-2xl border bg-slate-950 px-4 py-3
-             text-center text-slate-100 outline-none transition
+                class="w-full rounded-2xl border bg-slate-950 pl-11 pr-4 py-3
+             text-slate-100 outline-none transition
              focus:ring-2 focus:ring-yellow-500/20 focus:border-yellow-500
-             border-slate-800
-             placeholder-transparent" [class.border-red-500]="emailInvalid" [class.focus:border-red-500]="emailInvalid"
-                [class.focus:ring-red-500/20]="emailInvalid" />
+             border-slate-800" [class.border-red-500]="emailInvalid" />
             </div>
 
-            <div *ngIf="emailInvalid" class="mt-1 text-xs text-red-300 text-center">
+            <div *ngIf="emailInvalid" class="mt-1 text-xs text-red-300">
               Please enter a valid email.
             </div>
           </div>
 
           <!-- Password -->
           <div>
-            <div class="flex justify-between items-center mb-1">
-              <label class="block text-sm font-medium text-slate-300">
-  Password
-</label>
-
-              <button type="button" class="text-xs text-yellow-400 hover:text-yellow-300 transition"
-                (click)="goToForgotPassword()">
-                Forgot password?
-              </button>
-            </div>
+            <label class="block text-sm font-medium text-slate-300 mb-1 text-left">
+              Password
+            </label>
 
             <div class="relative">
-              <!-- centered lock icon -->
-              <lucide-icon name="lock" class="pointer-events-none absolute left-1/2 top-1/2
-             -translate-x-1/2 -translate-y-1/2
-             w-5 h-5 text-slate-500 transition-opacity duration-200"
-                [class.opacity-0]="form.get('password')?.value"></lucide-icon>
+              <lucide-icon name="lock" class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2
+             w-5 h-5 text-slate-500"></lucide-icon>
 
               <input [type]="showPassword ? 'text' : 'password'" formControlName="password"
-                autocomplete="current-password" [attr.aria-invalid]="passwordInvalid" aria-describedby="password-help"
-                class="w-full rounded-2xl border bg-slate-950 px-4 py-3
-             text-center text-slate-100 outline-none transition
+                autocomplete="new-password" [attr.aria-invalid]="passwordInvalid" class="w-full rounded-2xl border bg-slate-950 pl-11 pr-11 py-3
+             text-slate-100 outline-none transition
              focus:ring-2 focus:ring-yellow-500/20 focus:border-yellow-500
-             border-slate-800
-             placeholder-transparent" [class.border-red-500]="passwordInvalid"
-                [class.focus:border-red-500]="passwordInvalid" [class.focus:ring-red-500/20]="passwordInvalid" />
+             border-slate-800" [class.border-red-500]="passwordInvalid" />
 
-              <!-- toggle eye -->
               <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2
              text-slate-400 hover:text-slate-200 transition" (click)="togglePassword()"
                 aria-label="Toggle password visibility">
@@ -121,27 +126,37 @@
               </button>
             </div>
 
-            <div *ngIf="passwordInvalid" class="mt-1 text-xs text-red-300 text-center">
-              Password is required.
+            <div *ngIf="passwordInvalid" class="mt-1 text-xs text-red-300">
+              Password must be at least 8 characters.
             </div>
           </div>
 
-          <!-- Remember me -->
-          <div class="flex items-center justify-between">
-            <label class="inline-flex items-center gap-2 text-sm text-slate-300 select-none">
-              <input type="checkbox" formControlName="rememberMe" class="h-4 w-4 rounded border-slate-700 bg-slate-950 text-yellow-500
-                       focus:ring-yellow-500/20 focus:ring-2" />
-              Remember me
+          <!-- Confirm password -->
+          <div>
+            <label class="block text-sm font-medium text-slate-300 mb-1 text-left">
+              Confirm password
             </label>
 
-            <span class="text-xs text-slate-500">
-              Protected session
-            </span>
+            <div class="relative">
+              <lucide-icon name="lock" class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2
+             w-5 h-5 text-slate-500"></lucide-icon>
+
+              <input [type]="showPassword ? 'text' : 'password'" formControlName="confirmPassword"
+                autocomplete="new-password" [attr.aria-invalid]="confirmInvalid" class="w-full rounded-2xl border bg-slate-950 pl-11 pr-4 py-3
+             text-slate-100 outline-none transition
+             focus:ring-2 focus:ring-yellow-500/20 focus:border-yellow-500
+             border-slate-800" [class.border-red-500]="confirmInvalid" />
+            </div>
+
+            <div *ngIf="confirmInvalid" class="mt-1 text-xs text-red-300">
+              Passwords do not match.
+            </div>
           </div>
 
           <!-- Error global -->
           <div *ngIf="errorMessage"
-            class="rounded-2xl border border-red-900/50 bg-red-900/25 p-3 text-sm text-red-200 flex gap-2">
+            class="rounded-2xl border border-red-900/50 bg-red-900/25 p-3 text-sm text-red-200 flex gap-2"
+            role="alert">
             <lucide-icon name="alert-triangle" class="w-5 h-5 mt-0.5 text-red-200"></lucide-icon>
             <div class="leading-5">{{ errorMessage }}</div>
           </div>
@@ -151,42 +166,21 @@
                    hover:brightness-110 active:scale-[0.99] transition
                    disabled:opacity-60 disabled:cursor-not-allowed
                    shadow-[0_10px_30px_-12px_rgba(212,175,55,0.55)]">
-            <span *ngIf="!isSubmitting">Sign in</span>
+            <span *ngIf="!isSubmitting">Create account</span>
 
             <span *ngIf="isSubmitting" class="inline-flex items-center justify-center gap-2">
               <lucide-icon name="loader-2" class="w-5 h-5 animate-spin"></lucide-icon>
-              Signing in...
+              Creating account...
             </span>
           </button>
 
-          <!-- Divider -->
-          <div class="flex items-center gap-3 my-2">
-            <div class="h-px flex-1 bg-slate-800"></div>
-            <span class="text-[11px] tracking-wider text-slate-500">OR CONTINUE WITH</span>
-            <div class="h-px flex-1 bg-slate-800"></div>
-          </div>
-
-          <!-- Google -->
-          <button type="button" (click)="loginWithGoogle()" class="w-full flex items-center justify-center gap-3 rounded-2xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm font-medium text-slate-200
-                   hover:border-slate-600 hover:bg-slate-800 transition
-                   active:scale-[0.99]">
-            <!-- If you already have assets/icons/google.svg, keep it -->
-            <img src="/icons/google.png" class="w-5 h-5" alt="Google" />
-            Continue with Google
-          </button>
-
-          <!-- Sign up -->
-          <p class="pt-1 text-center text-sm text-slate-400">
-            Don't have an account?
-            <button type="button" class="text-yellow-400 hover:text-yellow-300 transition font-medium"
-              (click)="goToRegister()">
-              Sign up
-            </button>
-          </p>
-
           <!-- Footer -->
-          <p class="pt-2 text-center text-xs text-slate-500">
-            By continuing, you agree to FitRos terms and privacy policy.
+          <p class="pt-2 text-center text-sm text-slate-400">
+            Already have an account?
+            <button type="button" class="text-yellow-400 hover:text-yellow-300 transition font-medium"
+              (click)="goToLogin()">
+              Sign in
+            </button>
           </p>
 
         </form>

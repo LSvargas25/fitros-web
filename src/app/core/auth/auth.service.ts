@@ -8,7 +8,9 @@ import {
   LoginRequest,
   LoginResponse,
   RefreshRequest,
-  RefreshResponse
+  RefreshResponse,
+  RegisterRequest,
+  RegisterResponse
 } from '../../shared/models/auth.models';
 import { TokenStorageService } from './token-storage.service';
 
@@ -72,6 +74,17 @@ export class AuthService {
           this.tokenStorage.setTokens(res.accessToken, res.refreshToken);
         })
       );
+  }
+
+  // =============================
+  // REGISTER
+  // =============================
+
+  register(request: RegisterRequest): Observable<RegisterResponse> {
+    return this.http.post<RegisterResponse>(
+      `${this.authBase}/register`,
+      request
+    );
   }
 
   // =============================

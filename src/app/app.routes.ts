@@ -19,6 +19,14 @@ export const routes: Routes = [
     data: { title: 'Login' },
   },
   {
+    path: 'register',
+    canActivate: [guestGuard],
+    loadComponent: () =>
+      import('./features/auth/register/register')
+        .then(c => c.Register),
+    data: { title: 'Register' },
+  },
+  {
     path: 'forgot-password',
     canActivate: [guestGuard],
     loadComponent: () =>

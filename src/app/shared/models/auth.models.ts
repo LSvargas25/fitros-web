@@ -18,3 +18,15 @@ export interface RefreshResponse {
   refreshToken: string;
   expiresInSeconds?: number;
 }
+
+export interface RegisterRequest {
+  email: string;
+  firstName: string;
+  lastName: string;
+  password: string;
+}
+
+export interface RegisterResponse {
+  userId: string;
+  email: string;
+}

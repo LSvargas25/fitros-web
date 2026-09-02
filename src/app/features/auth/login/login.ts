@@ -100,6 +100,10 @@ export class Login {
     this.router.navigate(['/forgot-password']);
   }
 
+  goToRegister(): void {
+    this.router.navigate(['/register']);
+  }
+
   loginWithGoogle(): void {
     console.log('Google login not implemented yet');
   }
