@@ -36,7 +36,10 @@ import {
   ChartLine,
   Zap,
   CheckCircle2,
-  XCircle
+  XCircle,
+  Crown,
+  Building2,
+  Sparkles,
 } from 'lucide-angular';
 
 import { AuthInterceptor } from './core/http/AuthInterceptor';
@@ -80,7 +83,10 @@ export const appConfig: ApplicationConfig = {
   ChartLine,
   Zap,
   CheckCircle2,
-  XCircle
+  XCircle,
+  Crown,
+  Building2,
+  Sparkles
       })
     ),
 

@@ -6,6 +6,7 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../../core/auth/auth.service';
 import { SessionFacade } from '../../../core/auth/session-facade';
 import { GoogleIdentityService } from '../../../core/auth/google-identity.service';
+import { DEMO_ACCOUNTS, DEMO_PASSWORD, DemoAccount } from './demo-accounts';
 
 import {
   LucideAngularModule,
@@ -42,6 +43,15 @@ export class Login {
   isGoogleSubmitting = false;
   errorMessage: string | null = null;
   showPassword = false;
+
+  readonly demoAccounts = DEMO_ACCOUNTS;
+  /** Key of the demo account currently signing in, if any. */
+  demoInFlight: DemoAccount['key'] | null = null;
+
+  /** Any sign-in in progress: every sign-in button is disabled meanwhile. */
+  get busy(): boolean {
+    return this.isSubmitting || this.isGoogleSubmitting || this.demoInFlight !== null;
+  }
 
   form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
@@ -92,6 +102,36 @@ export class Login {
 
           this.cdr.detectChanges();
         }
+      });
+  }
+
+  /**
+   * One-click sign-in with a public demo account. Not remembered: the demo
+   * session lives in sessionStorage and ends with the tab.
+   */
+  loginAsDemo(account: DemoAccount): void {
+    if (this.busy) {
+      return;
+    }
+
+    this.errorMessage = null;
+    this.demoInFlight = account.key;
+    this.cdr.detectChanges();
+
+    this.auth.login({ email: account.email, password: DEMO_PASSWORD }, false)
+      .subscribe({
+        next: () => {
+          this.demoInFlight = null;
+          this.cdr.detectChanges();
+          this.router.navigateByUrl(this.session.landingUrl);
+        },
+        error: (err) => {
+          this.demoInFlight = null;
+          this.errorMessage =
+            err?.detail ||
+            'No se pudo entrar a la demo. Inténtalo de nuevo en unos segundos.';
+          this.cdr.detectChanges();
+        },
       });
   }
 
