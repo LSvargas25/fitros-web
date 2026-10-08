@@ -55,8 +55,54 @@
           </div>
         </div>
 
+        <!-- Demo: the primary path for visitors -->
+        <section class="mt-7 rounded-2xl border border-yellow-500/30 bg-yellow-500/[0.06] p-4 text-left"
+          aria-labelledby="demo-title" data-testid="demo-section">
+          <div class="flex items-center gap-2">
+            <lucide-icon name="sparkles" class="w-4 h-4 text-yellow-400"></lucide-icon>
+            <h2 id="demo-title" class="text-sm font-semibold text-slate-100">Probar demo</h2>
+          </div>
+          <p class="mt-1 text-xs text-slate-400">
+            Entra con un clic, sin registrarte. Elige un rol para ver FitRos desde su lado.
+          </p>
+
+          <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+            @for (account of demoAccounts; track account.key) {
+              <button type="button" (click)="loginAsDemo(account)" [disabled]="busy"
+                [attr.data-testid]="'demo-login-' + account.key"
+                class="flex flex-col items-start gap-0.5 rounded-xl bg-gradient-to-r from-yellow-500 to-amber-500
+                       px-3 py-2.5 text-left text-black
+                       hover:brightness-110 active:scale-[0.99] transition
+                       disabled:opacity-60 disabled:cursor-not-allowed
+                       shadow-[0_10px_30px_-14px_rgba(212,175,55,0.55)]">
+                <span class="flex items-center gap-1.5 text-sm font-semibold">
+                  @if (demoInFlight === account.key) {
+                    <lucide-icon name="loader-2" class="w-4 h-4 animate-spin"></lucide-icon>
+                    Entrando…
+                  } @else {
+                    <lucide-icon [name]="account.icon" class="w-4 h-4"></lucide-icon>
+                    Entrar como {{ account.label }}
+                  }
+                </span>
+                <span class="text-[11px] text-black/70">{{ account.hint }}</span>
+              </button>
+            }
+          </div>
+
+          <p class="mt-3 text-[11px] leading-4 text-slate-500">
+            Servidor gratuito: la primera entrada puede tardar hasta 1 minuto mientras despierta.
+          </p>
+        </section>
+
+        <!-- Divider -->
+        <div class="mt-6 flex items-center gap-3">
+          <div class="h-px flex-1 bg-slate-800"></div>
+          <span class="text-[11px] tracking-wider text-slate-500">OR SIGN IN WITH YOUR ACCOUNT</span>
+          <div class="h-px flex-1 bg-slate-800"></div>
+        </div>
+
         <!-- Form -->
-        <form class="mt-8 space-y-5" [formGroup]="form" (ngSubmit)="submit()">
+        <form class="mt-6 space-y-5" [formGroup]="form" (ngSubmit)="submit()" data-testid="login-form">
 
           <!-- Email -->
           <div>
@@ -147,10 +193,9 @@
           </div>
 
           <!-- Submit -->
-          <button type="submit" [disabled]="form.invalid || isSubmitting" class="w-full rounded-2xl bg-gradient-to-r from-yellow-500 to-amber-500 px-4 py-3 font-semibold text-black
-                   hover:brightness-110 active:scale-[0.99] transition
-                   disabled:opacity-60 disabled:cursor-not-allowed
-                   shadow-[0_10px_30px_-12px_rgba(212,175,55,0.55)]">
+          <button type="submit" [disabled]="form.invalid || busy" class="w-full rounded-2xl border border-yellow-500/50 bg-slate-950 px-4 py-3 font-semibold text-yellow-300
+                   hover:bg-yellow-500/10 hover:border-yellow-400 active:scale-[0.99] transition
+                   disabled:opacity-60 disabled:cursor-not-allowed">
             <span *ngIf="!isSubmitting">Sign in</span>
 
             <span *ngIf="isSubmitting" class="inline-flex items-center justify-center gap-2">
@@ -167,7 +212,7 @@
           </div>
 
           <!-- Google -->
-          <button type="button" (click)="loginWithGoogle()" [disabled]="isGoogleSubmitting" class="w-full flex items-center justify-center gap-3 rounded-2xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm font-medium text-slate-200
+          <button type="button" (click)="loginWithGoogle()" [disabled]="busy" class="w-full flex items-center justify-center gap-3 rounded-2xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm font-medium text-slate-200
                    hover:border-slate-600 hover:bg-slate-800 transition
                    active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed">
             <img src="/icons/google.png" class="w-5 h-5" alt="" />
